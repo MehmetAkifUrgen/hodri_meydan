@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dinamit - Home Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#4f46e5", // Electric Indigo
+              "secondary": "#ec4899", // Vibrant Magenta
+              "background-light": "#f5f5f8",
+              "background-dark": "#0B1121", // Deep Void Navy
+            },
+            fontFamily: {
+              "display": ["Space Grotesk", "sans-serif"]
+            },
+            borderRadius: {
+                "DEFAULT": "0.25rem", 
+                "lg": "0.5rem", 
+                "xl": "0.75rem", 
+                "full": "9999px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+      .glass-card {
+        background-color: rgba(25, 24, 52, 0.5);backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(79, 70, 229, 0.3);}
+      .glass-card:hover {
+        border-color: rgba(79, 70, 229, 0.6);box-shadow: 0 0 20px rgba(79, 70, 229, 0.3);
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative mx-auto flex h-auto min-h-screen w-full max-w-md flex-col overflow-x-hidden">
+<header class="flex items-center justify-between p-4 pt-6">
+<div class="flex items-center gap-3">
+<div class="relative size-12 shrink-0">
+<div class="h-full w-full rounded-full bg-cover bg-center bg-no-repeat" data-alt="User avatar with a futuristic look" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBPG3iq9wl6RV5nsmHstHLOL1jhQB9QUrm7054eZ9FnECY8lRlZ41mZsjCnjRHPWhw7RLV8rlJzUKyyJF0u7rj3LhHXN-UtX4f7yCsyCPRhb3aeHSVHETOKzu1rodJXN2BDlstrdEk1HsdzW0y6B04Te3dLbTWod6ldYHi7ptPrAbyKRM1sx6_kF8SGjudEW6FVONHoL3F0zOL5WVGVwqoybUqhE635Fuy7LasrhJU1Rjdaz3OpGtuharFpL7sL3MxKV_woJzvytBYA');"></div>
+<div class="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-background-dark bg-[#05f5a5]"></div>
+</div>
+<div class="flex flex-col items-start">
+<p class="text-sm font-medium text-slate-400">Player</p>
+<p class="text-lg font-bold text-white">CyberGamer</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 rounded-full bg-primary/20 px-4 py-2">
+<span class="material-symbols-outlined text-xl text-secondary">monetization_on</span>
+<p class="text-base font-bold leading-tight tracking-tight text-white">1,250</p>
+</div>
+<button class="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-primary/20 text-white">
+<span class="material-symbols-outlined text-2xl">settings</span>
+</button>
+</div>
+</header>
+<div class="flex w-full grow flex-col items-center justify-center p-4">
+<div class="relative aspect-square w-64">
+<div class="absolute inset-0 -z-10 rounded-full bg-primary opacity-30 blur-3xl"></div>
+<img alt="A stylized 3D dynamite character mascot with a lit fuse, smiling." class="h-full w-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfALlOoAgyDgstui2QgTFAMc-ufD7d87b3ayJVZ8XfVGMlyZK1AOdSaz5tR4M1tHE_T5OnDhkr890tKeJjPZQfKFWV_EcJlmPbdrjP10naWPVokKLn6vEv97i84LJhlTIkQoQMhQ48VXTzGvjbs2O9CiZxQqyMJinK1M3b52la_KPmQN7q-Zp0nOxQ1m0-AaycKsQm0vdq7N9d0wvttMKdvGq6CJOPy-lDNNi6yk3FIUftDYI501K1d3Fr1qq76Ig3RJ7sMdbMP2KV"/>
+</div>
+</div>
+<nav class="flex flex-col gap-4 p-4">
+<a class="group glass-card flex w-full flex-col items-stretch justify-start rounded-xl p-4 transition-all duration-300" href="#">
+<div class="flex w-full grow flex-col items-stretch justify-center gap-1">
+<p class="text-xl font-bold leading-tight tracking-[-0.015em] text-white">Tek Kişilik</p>
+<p class="text-base font-normal leading-normal text-slate-400">Kendinle yarış, rekorları kır</p>
+</div>
+</a>
+<a class="group glass-card flex w-full flex-col items-stretch justify-start rounded-xl p-4 transition-all duration-300" href="#">
+<div class="flex w-full grow flex-col items-stretch justify-center gap-1">
+<p class="text-xl font-bold leading-tight tracking-[-0.015em] text-white">Çok Oyunculu</p>
+<p class="text-base font-normal leading-normal text-slate-400">Arkadaşlarına veya dünyaya meydan oku</p>
+</div>
+</a>
+<a class="group glass-card flex w-full flex-col items-stretch justify-start rounded-xl p-4 transition-all duration-300" href="#">
+<div class="flex w-full grow flex-col items-stretch justify-center gap-1">
+<p class="text-xl font-bold leading-tight tracking-[-0.015em] text-white">İsim Şehir</p>
+<p class="text-base font-normal leading-normal text-slate-400">Klasik oyunlar, modern dokunuş</p>
+</div>
+</a>
+</nav>
+<footer class="sticky bottom-0 mt-4 p-4 pb-6">
+<div class="glass-card flex items-center justify-around rounded-full p-2">
+<button class="flex h-12 w-16 flex-col items-center justify-center rounded-full text-slate-400 transition-colors hover:text-white">
+<span class="material-symbols-outlined text-2xl">leaderboard</span>
+</button>
+<button class="flex h-12 w-16 flex-col items-center justify-center rounded-full bg-primary text-white transition-colors">
+<span class="material-symbols-outlined text-2xl">storefront</span>
+</button>
+<button class="flex h-12 w-16 flex-col items-center justify-center rounded-full text-slate-400 transition-colors hover:text-white">
+<span class="material-symbols-outlined text-2xl">groups</span>
+</button>
+</div>
+</footer>
+</div>
+
+</body></html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Single Player Mode</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#6c0df2",
+            "background-light": "#f7f5f8",
+            "background-dark": "#171022",
+            "electric-indigo": "#6F00FF",
+            "neon-cyan": "#00FFFF",
+            "vibrant-magenta": "#FF00FF",
+            "golden-amber": "#FFC700",
+            "deep-void-navy": "#0B1121"
+          },
+          fontFamily: {
+            "display": ["Space Grotesk", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          boxShadow: {
+            'glow-primary': '0 0 15px 2px rgba(111, 0, 255, 0.6)',
+            'glow-secondary': '0 0 20px 5px rgba(255, 0, 255, 0.5)',
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    .glassmorphism {
+      background: rgba(255, 255, 255, 0.05);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .selected-card {
+      border-color: #00FFFF;
+      box-shadow: 0 0 15px 2px rgba(0, 255, 255, 0.4);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-deep-void-navy font-display">
+<div class="relative flex min-h-screen w-full flex-col overflow-hidden">
+<div class="absolute inset-0 z-0">
+<div class="absolute bottom-0 left-0 h-1/2 w-full bg-gradient-to-t from-electric-indigo/20 to-transparent opacity-50"></div>
+<div class="absolute top-0 right-0 h-1/3 w-1/3 bg-gradient-to-bl from-vibrant-magenta/20 to-transparent opacity-40 rounded-full blur-3xl"></div>
+</div>
+<div class="relative z-10 flex h-full flex-col p-4">
+<header class="flex items-center justify-between pt-4 pb-2">
+<div class="flex size-12 shrink-0 items-center justify-start text-white">
+<span class="material-symbols-outlined text-3xl">arrow_back_ios_new</span>
+</div>
+<h1 class="flex-1 text-center text-lg font-bold leading-tight tracking-[-0.015em] text-white">Single Player</h1>
+<div class="flex size-12 shrink-0 items-center justify-end">
+<div class="bg-center bg-no-repeat aspect-square bg-cover border-electric-indigo/50 rounded-full flex size-10 items-center justify-center border-2" data-alt="User avatar with a gradient background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDOAWxKR6zct9TXxU3lQK-IyWpj9v5ZfjMTZ206hzKvuEQsYVUqKalNeUJLWQ1Lv04YqDjO0DtjynVMwUoUOIbZb7P5jak7vlaD-9cjyGIaHM8mj-bQhn1tQjJrqJ6PGackhB5JSWc0S7yoeqHf7TdYrT_0tq3MlJm9IDWfsyWeqCLYRFpmsk80kpgV4bYEjAbOezR7KMEh5zow-wv8PsgHr47YPuoXv69Azlrteec0YXA9mxsLlyv4-xaL0Jezdr_pXz119En-uGYK');"></div>
+</div>
+</header>
+<main class="flex-1 flex flex-col justify-between">
+<div class="flex-1">
+<div class="py-8">
+<h2 class="text-white tracking-light text-center text-[32px] font-bold leading-tight">Choose Your Challenge</h2>
+<p class="pt-2 text-center text-base font-normal leading-normal text-white/70">Select a category to begin.</p>
+</div>
+<div class="flex overflow-x-auto pb-4 no-scrollbar">
+<div class="flex flex-nowrap items-stretch gap-4 px-4">
+<div class="flex h-full min-w-40 flex-1 flex-col gap-3 rounded-xl glassmorphism border-neon-cyan selected-card p-3">
+<div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-lg flex flex-col" data-alt="Abstract image representing Science &amp; Tech" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAX8l8dFL6epuSqDQYgzBejEv0kZAhpkKfOwAcyXC81Eg_DzVunjDk9F9arw0sxegAdfZpeJf26gp3vomxppsEoPmDYYFYr48m_19PcRA4qobPTOwA7pzMr7Tt0wyRtzQE1TYkH6a5mafhtd1qNgzHzqBufCDsyh1ny2nqiLSgjgiiBhkZwo8kmGbBL3yq0_MpYe03BA_4ziX4EIMBxIpfGZgRMuG9EWzpGzqjV6Ffa9ashCX1K27E2m2FYKfpr9-UMYG_ghcy0EeIq');"></div>
+<p class="text-center text-base font-medium leading-normal text-white">Science &amp; Tech</p>
+</div>
+<div class="flex h-full min-w-40 flex-1 flex-col gap-3 rounded-xl glassmorphism p-3">
+<div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-lg flex flex-col" data-alt="Abstract image representing History" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAP0f9VymaUcsEfd5URllKulayGOclhxwBNKbwPALktEA2XAb3XGgTJpneMQ1SPuZttkVgQneDEGqSlomuWg-RMh2PiuRaApEVeZifV-ZclFT7Z_zT9pPK4zrbWCqEyNSktPBQWb_5Z7ZAy-_VEttoooE-zjUaM0czrwY8o0yuF33HQKeA_DaLdBNMJw1evl4TiVwJvtGiuwANFaFoYM7uhwbzTFB-FquS8eStfyEjbUyidIGcGgiRWEGLiVOpb0g77D3UYjvgdBFjy');"></div>
+<p class="text-center text-base font-medium leading-normal text-white">History</p>
+</div>
+<div class="flex h-full min-w-40 flex-1 flex-col gap-3 rounded-xl glassmorphism p-3">
+<div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-lg flex flex-col" data-alt="Abstract image representing Arts &amp; Lit" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAJ2qNHi1jfoAfytLVrvJ6Kgc9hEJNh1VWdetmqV6FIyY-ntA_pldk9zNpw23mSY5Hf1BGX_5eiT6Jo4_5c0iCNQzepzX9NJMzzT39jUzNkogElDbCCTZjfGmUbPZCjil9RU5oTUf1qdZptWW5N6dAsXJ7HlukKx2qOWcBDpr37-RYM4f1YUokWlxm3Pol7E2ILfGL81sfHuqvWgDur6KBIKT_Wx8wPZhArUzVPTIQS7CboeZd8ukMLZJotdRaLoqjkl2InowOGgHzz');"></div>
+<p class="text-center text-base font-medium leading-normal text-white">Arts &amp; Lit</p>
+</div>
+<div class="flex h-full min-w-40 flex-1 flex-col gap-3 rounded-xl glassmorphism p-3">
+<div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-lg flex flex-col" data-alt="Abstract image representing Geography" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB-dpw_WdXcQ72u6pN8x_1xFKFllNqgvnvGO81w0jgIAWLpdFJ2kz7qP3knWJlmSfxC6bOH0QTYLGMPkUAbYlLjZcGC7aTxaJMphqDXBtj8Ts9Fpp2J1Dd9WGXrJ9X3jXXl9y4Nut5LgbJjHFGCG5IhOz42alT2Tj9t6m26pKsirhUvty58O5hzrZQ4lXVQjxGpcQs-so7xgM-I7BKgQ-nclJsR01VJJnDZa0R8GbzQPyqbzFuxpmQW_JNKhbdd1CqS7E382iIx4mNV');"></div>
+<p class="text-center text-base font-medium leading-normal text-white">Geography</p>
+</div>
+<div class="flex h-full min-w-40 flex-1 flex-col gap-3 rounded-xl glassmorphism p-3">
+<div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-lg flex flex-col" data-alt="Abstract image representing Pop Culture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCJO9jMsLq-sZQEEqbiljcT13q3m2BOWzAWb-vuhM3enAnd8tCup-dqmUhSlIP2vKyqSWe-dQl7WhGmoXQdg6nVaqqYwViN0AUPrMWEfkQ7-W4nie9vcZ8dHPtJES-ig7RIdS-XX-IuJNUUQU-jT3TIYpImpcMU9BDLb6gU7d22ah22t-NjmOxMZ_V7BdJjDrAUYgm_tnH_jw4d8H4R9IUUkuvU_uyy9IBlHIh9Qon2njM-3f65T-Gh6GTBRhTB8Dqed1HgZiXg3OpI');"></div>
+<p class="text-center text-base font-medium leading-normal text-white">Pop Culture</p>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-center gap-4 py-8">
+<button class="flex w-full max-w-sm items-center justify-center rounded-xl bg-gradient-to-r from-vibrant-magenta to-golden-amber p-4 text-center shadow-glow-secondary">
+<span class="text-lg font-bold uppercase tracking-widest text-white">Start Game</span>
+</button>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>

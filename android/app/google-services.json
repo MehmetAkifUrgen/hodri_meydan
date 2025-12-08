@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "545013436588",
+    "project_id": "dinamit-14312",
+    "storage_bucket": "dinamit-14312.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:545013436588:android:67a83434baf9a72e4c4f09",
+        "android_client_info": {
+          "package_name": "com.dynamind.dinamit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpVzOeBdrAtjnP2HX1Cx0S4YkdmSWa9eM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

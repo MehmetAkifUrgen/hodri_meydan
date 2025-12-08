@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Profile Page</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#6F00FF", // Electric Indigo
+            "secondary": "#FF00FF", // Vibrant Magenta
+            "background-dark": "#0B1121", // Deep Void Navy
+            "background-light": "#f0f2f5",
+            "surface-dark": "rgba(43, 33, 74, 0.5)", // Semi-transparent for glassmorphism
+            "border-dark": "rgba(62, 47, 106, 0.7)",
+            "text-primary-dark": "#FFFFFF",
+            "text-secondary-dark": "#9e8ecc",
+          },
+          fontFamily: {
+            "display": ["Space Grotesk", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem", // 8px
+            "lg": "0.75rem", // 12px
+            "xl": "1rem", // 16px
+            "full": "9999px"
+          },
+          boxShadow: {
+            'glow-primary': '0 0 15px 0 rgba(111, 0, 255, 0.6)',
+            'glow-secondary': '0 0 15px 0 rgba(255, 0, 255, 0.6)',
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    .glassmorphic {
+      background-color: var(--tw-bg-opacity, 1) theme('colors.surface-dark');
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid theme('colors.border-dark');
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="flex items-center bg-background-dark/80 backdrop-blur-sm sticky top-0 z-10 p-4 pb-2 justify-between">
+<div class="text-text-primary-dark flex size-12 shrink-0 items-center">
+<span class="material-symbols-outlined text-2xl">arrow_back_ios</span>
+</div>
+<h2 class="text-text-primary-dark text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Profile</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 bg-transparent text-text-primary-dark gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-0">
+<span class="material-symbols-outlined text-2xl">settings</span>
+</button>
+</div>
+</div>
+<div class="flex p-4 @container">
+<div class="flex w-full flex-col gap-4 items-center">
+<div class="flex gap-4 flex-col items-center">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-32 w-32 border-2 border-primary shadow-glow-primary" data-alt="Futuristic glowing avatar of a player character" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBvnSxWuMxlJJXKIIJwhdEIZkx5D0GWbxRJ5cEuf0zzBBGvQe0TtNgeREl4dyS_-vUNjTcDYndjiSS40BhEsgVT92yvggY58GlxXzFdlvb3Zs8VddtpYpmTz3lmSIo-ps4XwlH3rA5JXXnShhAzeiHhWkPcRyErO5_qmZks9YxmIwCnGUh7Byvz1uLuAnJA_gOxsH3wAiwaw-9hsM3Z7_L2bTqttdOibWvWXbtPXuzNE7fv8Voz_tqb0jqREAtLlbHLnp5Q0hPfHZQb");'></div>
+<button class="absolute bottom-0 right-0 flex items-center justify-center size-8 bg-secondary rounded-full border-2 border-background-dark shadow-glow-secondary">
+<span class="material-symbols-outlined text-text-primary-dark text-lg">edit</span>
+</button>
+</div>
+<div class="flex flex-col items-center justify-center">
+<p class="text-text-primary-dark text-[22px] font-bold leading-tight tracking-[-0.015em] text-center">CyberNinja</p>
+<p class="text-text-secondary-dark text-base font-normal leading-normal text-center">ID: #CBR-1337</p>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-3 p-4">
+<div class="flex gap-6 justify-between">
+<p class="text-text-primary-dark text-base font-medium leading-normal">Level 24</p>
+</div>
+<div class="rounded-full bg-surface-dark h-2.5">
+<div class="h-2.5 rounded-full bg-gradient-to-r from-primary to-secondary" style="width: 65%;"></div>
+</div>
+<p class="text-text-secondary-dark text-sm font-normal leading-normal text-right">1,250 / 2,000 XP to Level 25</p>
+</div>
+<div class="flex flex-wrap gap-3 px-4 py-3">
+<div class="flex min-w-[111px] flex-1 basis-[fit-content] flex-col gap-2 rounded-xl glassmorphic p-4 items-center text-center">
+<p class="text-text-primary-dark tracking-light text-2xl font-bold leading-tight">1,250</p>
+<p class="text-text-secondary-dark text-sm font-normal leading-normal">Games Played</p>
+</div>
+<div class="flex min-w-[111px] flex-1 basis-[fit-content] flex-col gap-2 rounded-xl glassmorphic p-4 items-center text-center">
+<p class="text-text-primary-dark tracking-light text-2xl font-bold leading-tight">82%</p>
+<p class="text-text-secondary-dark text-sm font-normal leading-normal">Win Rate</p>
+</div>
+<div class="flex min-w-[111px] flex-1 basis-[fit-content] flex-col gap-2 rounded-xl glassmorphic p-4 items-center text-center">
+<p class="text-text-primary-dark tracking-light text-2xl font-bold leading-tight">98,500</p>
+<p class="text-text-secondary-dark text-sm font-normal leading-normal">Total Score</p>
+</div>
+</div>
+<h2 class="text-text-primary-dark text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Achievements</h2>
+<div class="flex gap-4 overflow-x-auto px-4 pb-4 snap-x snap-mandatory">
+<div class="flex flex-col items-center justify-center gap-2 flex-shrink-0 snap-center">
+<div class="flex items-center justify-center size-20 rounded-xl glassmorphic border-2 border-secondary shadow-glow-secondary">
+<span class="material-symbols-outlined text-4xl text-secondary">military_tech</span>
+</div>
+<p class="text-text-secondary-dark text-sm">First Win</p>
+</div>
+<div class="flex flex-col items-center justify-center gap-2 flex-shrink-0 snap-center">
+<div class="flex items-center justify-center size-20 rounded-xl glassmorphic border-2 border-primary">
+<span class="material-symbols-outlined text-4xl text-primary">local_fire_department</span>
+</div>
+<p class="text-text-secondary-dark text-sm">5-Win Streak</p>
+</div>
+<div class="flex flex-col items-center justify-center gap-2 flex-shrink-0 snap-center">
+<div class="flex items-center justify-center size-20 rounded-xl glassmorphic border-2 border-primary">
+<span class="material-symbols-outlined text-4xl text-primary">school</span>
+</div>
+<p class="text-text-secondary-dark text-sm">Trivia Master</p>
+</div>
+<div class="flex flex-col items-center justify-center gap-2 flex-shrink-0 snap-center">
+<div class="flex items-center justify-center size-20 rounded-xl glassmorphic border border-border-dark opacity-50">
+<span class="material-symbols-outlined text-4xl text-text-secondary-dark">bolt</span>
+</div>
+<p class="text-text-secondary-dark text-sm opacity-50">Speed Demon</p>
+</div>
+<div class="flex flex-col items-center justify-center gap-2 flex-shrink-0 snap-center">
+<div class="flex items-center justify-center size-20 rounded-xl glassmorphic border border-border-dark opacity-50">
+<span class="material-symbols-outlined text-4xl text-text-secondary-dark">shield</span>
+</div>
+<p class="text-text-secondary-dark text-sm opacity-50">Perfect Round</p>
+</div>
+</div>
+<h2 class="text-text-primary-dark text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Match History</h2>
+<div class="flex flex-col gap-3 px-4 pb-24">
+<div class="flex items-center justify-between p-4 rounded-xl glassmorphic">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-10 w-10 border border-primary" data-alt="Opponent avatar for user CosmicRay" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDe1wOHi_-RlHQ2KeWFFL_HTo6XPKCUlruN68SijcLqCS5Tw_pGzz11Ui2NSPOjH-KZrvPaW8qLwJZDCI55ie1zFcCuYKa6kkK9XxvxxVaGptZAoqsP-wCt9BAyVFSkUJaAPTMNVcPekWhmQuk8WDAJR_HDvs-BU-fGb4Amr4kreY14EaFYQDmr3KZVLHkbZ7_T1mwb925vbWMI_ZCgIafRs8G9vvDzh6UMHkAewnLSfoUrm5ApDC5rW3ZCK6zud5xZJl2TFTaDrNCC")'></div>
+<div>
+<p class="text-text-primary-dark font-bold">vs CosmicRay</p>
+<p class="text-text-secondary-dark text-sm">Science Trivia</p>
+</div>
+</div>
+<div class="text-center">
+<p class="font-bold text-lg text-green-400">WIN</p>
+<p class="text-text-secondary-dark text-sm">120-85</p>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 rounded-xl glassmorphic">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-10 w-10 border border-primary" data-alt="Opponent avatar for user GlitchQueen" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBPS2AbjQfVA34Ynwc3bEHVe4OMbEc8bhkA19bvcpgDF9visc7DVvPU1VugXlhwbFLM9E0a4uDMPQYewW5ZAjLCpzXddhm2Op5JkOlG6h4J9VT0P3-k4KQ238zchfJLycpd9y6ozNJ-7ftgj_guCXfiJJOrHoGsXM-3d5m59LxztuA4PCEf882CyB7PXQhxuO0ZN9CiEfjh3cVG8bAM_kIwYwqB3pqFn_e92z2oG-3Cz1pP3gibvt0yz5-4oz5XexSZxiM87ZSjhTv9")'></div>
+<div>
+<p class="text-text-primary-dark font-bold">vs GlitchQueen</p>
+<p class="text-text-secondary-dark text-sm">80s Movies</p>
+</div>
+</div>
+<div class="text-center">
+<p class="font-bold text-lg text-red-400">LOSS</p>
+<p class="text-text-secondary-dark text-sm">90-150</p>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 rounded-xl glassmorphic">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-10 w-10 border border-primary" data-alt="Opponent avatar for user VoidWalker" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCyUq5iYvvyxmGTu6pJU4Af1H8kENNvjtGOAujDegqxpWDhAsFPpWAvrCc2fdaFBz11CyDfxOLn8N_50pO9GR4Ok5I5NVJwQgEchrJBPpPmweb9vIHJ3MDHGFLYZevCS8encgu6QbJp8tNPJNtAOwkXRSGGmb7TEX0csj_y2KvTTzjQm2k-55_k313d2LrVz8GDzKg8-c_VuvbEAEa4lw6SzzYZD_KmlwAZgGQMVd3qL4muaKFBXCZVA8wVDNEYtTvoV6WToWhNIxi3")'></div>
+<div>
+<p class="text-text-primary-dark font-bold">vs VoidWalker</p>
+<p class="text-text-secondary-dark text-sm">History</p>
+</div>
+</div>
+<div class="text-center">
+<p class="font-bold text-lg text-green-400">WIN</p>
+<p class="text-text-secondary-dark text-sm">200-110</p>
+</div>
+</div>
+</div>
+<div class="fixed bottom-0 left-0 right-0 p-2 bg-background-dark/80 backdrop-blur-sm">
+<div class="mx-auto max-w-md h-16 rounded-xl glassmorphic flex justify-around items-center">
+<button class="flex flex-col items-center text-text-secondary-dark">
+<span class="material-symbols-outlined">home</span>
+<span class="text-xs">Home</span>
+</button>
+<button class="flex flex-col items-center text-text-secondary-dark">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="text-xs">Leaderboard</span>
+</button>
+<button class="flex flex-col items-center text-text-secondary-dark">
+<span class="material-symbols-outlined">gamepad</span>
+<span class="text-xs">Play</span>
+</button>
+<button class="flex flex-col items-center text-primary">
+<span class="material-symbols-outlined">person</span>
+<span class="text-xs font-bold">Profile</span>
+</button>
+</div>
+</div>
+</div>
+
+</body></html>

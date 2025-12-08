@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Leaderboard Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#f906f9",
+              "background-light": "#f8f5f8",
+              "background-dark": "#0A0514", 
+              "cyan-accent": "#00FFFF", 
+              "indigo-accent": "#4F46E5",
+              "magenta-accent": "#E6007A", 
+              "amber-accent": "#FFC107",
+              "glass-dark": "rgba(255, 255, 255, 0.05)",
+            },
+            fontFamily: {
+              "display": ["Space Grotesk", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            boxShadow: {
+                'cyan-glow': '0 0 15px rgba(0, 255, 255, 0.3), 0 0 5px rgba(0, 255, 255, 0.5)',
+                'gold-glow': '0 0 15px rgba(255, 193, 7, 0.4), 0 0 5px rgba(255, 193, 7, 0.6)',
+                'silver-glow': '0 0 15px rgba(192, 192, 192, 0.4), 0 0 5px rgba(192, 192, 192, 0.6)',
+                'bronze-glow': '0 0 15px rgba(205, 127, 50, 0.4), 0 0 5px rgba(205, 127, 50, 0.6)',
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-dark">
+<div class="relative flex min-h-screen w-full flex-col bg-background-dark dark group/design-root overflow-x-hidden">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-20 bg-background-dark/80 backdrop-blur-sm">
+<div class="flex items-center p-4">
+<div class="text-white flex size-10 shrink-0 items-center justify-center">
+<span class="material-symbols-outlined text-3xl">arrow_back_ios_new</span>
+</div>
+<h1 class="text-white text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Leaderboard</h1>
+</div>
+<!-- Segmented Buttons -->
+<div class="flex px-4 py-2">
+<div class="flex h-12 flex-1 items-center justify-center rounded-xl bg-glass-dark p-1 backdrop-blur-lg border border-white/10">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-cyan-accent has-[:checked]:text-black text-white text-base font-medium leading-normal transition-all duration-300">
+<span class="truncate">Global</span>
+<input checked="" class="invisible w-0" name="leaderboard_scope" type="radio" value="Global"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-cyan-accent has-[:checked]:text-black text-white/70 text-base font-medium leading-normal transition-all duration-300">
+<span class="truncate">Friends</span>
+<input class="invisible w-0" name="leaderboard_scope" type="radio" value="Friends"/>
+</label>
+</div>
+</div>
+<!-- Chips -->
+<div class="flex gap-3 px-4 pt-2 pb-4 overflow-x-auto">
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-cyan-accent px-5">
+<p class="text-black text-sm font-bold leading-normal">All-Time</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-glass-dark px-5">
+<p class="text-white/70 text-sm font-medium leading-normal">Weekly</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-glass-dark px-5">
+<p class="text-white/70 text-sm font-medium leading-normal">Daily</p>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 px-4 pb-32">
+<!-- Top 3 Podium -->
+<section class="flex items-end justify-center gap-4 pt-6 pb-8">
+<!-- 2nd Place -->
+<div class="flex flex-col items-center gap-2">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-20 w-20 border-4 border-slate-400 shadow-silver-glow" data-alt="Avatar of user in 2nd place" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBnuxnyVSTW4kPGyAtcmNMcO3Qcms5mfSPKeUAxEJAZISdBXWoZsYseFFgELAAhMuu7sigAnn45OejI72VHV-z-D45B5mz4dIRfwQP78mm5JZkeF6ScNHR8f-Ktkrsuq3QOLBcs2MwNfs8eBHMTZLKQMdv1wIylRFOiYCBA6UaYVGahaZF8iaXiqW3V7PwRW4bIQEKXqUMPI3DaFrHrfQDVuMVX8k27lpTHZVBRjcqyTShb4XwZBxB3slM3i21PO3mkg7stpd-nfTfI");'></div>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-400 text-black text-sm font-bold">2</div>
+</div>
+<p class="text-white text-sm font-medium">Lila Rose</p>
+<p class="text-white/70 text-xs font-normal">28,450 PTS</p>
+</div>
+<!-- 1st Place -->
+<div class="flex flex-col items-center gap-2">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-28 w-28 border-4 border-amber-accent shadow-gold-glow" data-alt="Avatar of user in 1st place" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAfRMTe3LkiK-2lMP13WuYBRnzqFmWAruk7XfVJkdzi7cqPuFMsF6bTlzvzqhBCl0Aj41vj6fDZWi-gGBbOjUQVDEOHqJNQFMEBLNyXveHM3-ZT-EqqN8j9hamNSohxRjHwiECFNKyMpOn8CBw1P9EbxO33vF90vfghwbgBVKFwOiep0MFqd6yOB4UyMO5jvVSXr8sMVz8GgMA2htauUrDw991z6iKEfpEjOBky2pXU1oh7gUeAirUv_6ZY13OkJQrIEI7bdQjLUqvg");'></div>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-amber-accent text-black text-sm font-bold">1</div>
+</div>
+<p class="text-white text-base font-bold">Alex Mercer</p>
+<p class="text-amber-accent text-sm font-medium">32,100 PTS</p>
+</div>
+<!-- 3rd Place -->
+<div class="flex flex-col items-center gap-2">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-20 w-20 border-4 border-[#CD7F32] shadow-bronze-glow" data-alt="Avatar of user in 3rd place" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB-MEQpIdQ6g6H946u3zjh83j9axfYbHOLprc-cw5G7vpjmAIgmd7pXNfdqjFl7C5KLJeS-AZ653kE4ILmzJ-1My03qcmakpqw8aPFDzVBmt6d6aVjOr1cUrRposL10rYcD9oteUvcyfg2S1F5Zi7_s2QpQjKutVVlo2QeyqH05BIe7eGxF2JtTpjJtI2uJpT9hSgEVtGqOx9WALEfE5PGxgw_e_Nmx4Gek1pnKI-yVfN5_QrThByELMuwfaSu241W4c6THA86b1Ier");'></div>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-[#CD7F32] text-black text-sm font-bold">3</div>
+</div>
+<p class="text-white text-sm font-medium">Kenji Tanaka</p>
+<p class="text-white/70 text-xs font-normal">27,900 PTS</p>
+</div>
+</section>
+<!-- Ranked Player List -->
+<section class="flex flex-col gap-2">
+<!-- List Item -->
+<div class="flex items-center gap-4 bg-glass-dark px-4 min-h-[72px] py-2 justify-between rounded-xl border border-white/10 backdrop-blur-lg">
+<div class="flex items-center gap-4">
+<p class="text-white/50 text-base font-normal w-6 text-center">4</p>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBcv430s7szbYvzKE6OoQrFgzYMwBMtCoj_Kqw_YLbJtJJ33ydAzyELuC1TpH3T1esfcJns7vcNvQBewtsvFaG6iVCYfUNuHv9fJ3fnOlsfNJGezVI2goQTqbO_xqNTX7hI1yae5aAURAezz7O3_42LKKZA0bZ8qbpUkUMi0AbWQit70D8K6JHy3MuQefnGcoyPtz9P8oxMzo-Jr-4lgaGAtMwB_00xEHS-ANlo0spWLFm0XtUZjfyOoeU-U0XX5iTSXHFHXwqSftgF");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-white text-base font-medium leading-normal line-clamp-1">Maya Singh</p>
+<p class="text-white/70 text-sm font-normal leading-normal line-clamp-2">25,600 PTS</p>
+</div>
+</div>
+</div>
+<!-- List Item -->
+<div class="flex items-center gap-4 bg-glass-dark px-4 min-h-[72px] py-2 justify-between rounded-xl border border-white/10 backdrop-blur-lg">
+<div class="flex items-center gap-4">
+<p class="text-white/50 text-base font-normal w-6 text-center">5</p>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBR-IgaF69E681e5hhOSMMT6-9lgi3mBPdnTB-ANKohvLOCf8R1aOPL9X_gjR3T9hen316P9xxZGPoGl0VRNfFLkj50RCN0tRCZtizcEwZ6uJ1p52Hwt_AZ09BGB8FPUvjaWTRFRqcJWIHCOGOzQSzBxTOwPCgd21OHm3utD-JadCXJiioJUOKprsvp8kKSJ1pYVE7EE8cSU0MmJhFwlrlUz1Hb5s5mt4zQ-y1cRAtXALIO3LobdZ4Z4umiJYohh-fV0oE9Oest4Elu");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-white text-base font-medium leading-normal line-clamp-1">Leo Carter</p>
+<p class="text-white/70 text-sm font-normal leading-normal line-clamp-2">24,150 PTS</p>
+</div>
+</div>
+</div>
+<!-- List Item -->
+<div class="flex items-center gap-4 bg-glass-dark px-4 min-h-[72px] py-2 justify-between rounded-xl border border-white/10 backdrop-blur-lg">
+<div class="flex items-center gap-4">
+<p class="text-white/50 text-base font-normal w-6 text-center">6</p>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDzaJs2Tk3yl3B99if96QPZXyQn8Ub8G1zScL2HllQ8lCFrCv1KUK1BLjAG2W-_N44_oRMEqiza9z1IoFI5mRe_Lh7Yk3gPbHvxf7FnhQG8N_yzo4yjADpg3CQLyGyQcfOX0pRENF_Zuhyo4W1JM5mreMsIk0cIVYFCNU2DDawdmtfWbzrEVvOhG8KWu2VUekslwqCEflBCU-_7XDDkOeQcoqLyoCP8NYNG-R8mIcrUG86razKyHEov8i2tJMl_RFprUDP1s6p4AEW3");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-white text-base font-medium leading-normal line-clamp-1">Zara Al-Jamil</p>
+<p class="text-white/70 text-sm font-normal leading-normal line-clamp-2">23,980 PTS</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Fixed User Rank Banner -->
+<footer class="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background-dark via-background-dark to-transparent">
+<div class="flex items-center gap-4 bg-gradient-to-r from-magenta-accent to-amber-accent p-1 rounded-xl shadow-lg shadow-magenta-accent/20">
+<div class="flex w-full items-center gap-4 bg-background-dark/90 px-3 py-2 justify-between rounded-lg">
+<div class="flex items-center gap-4">
+<p class="text-white text-lg font-bold w-6 text-center">87</p>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12" data-alt="Current user's avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDwJoeaGmBTDTEph1s-cfOIKnWC1kTeRu5hRSfIdgDjTzGLxCO7ygOLXFZapflRQW-uVy2e1g78nXmFXFqaYaBbEuI5Z4uewt-hIFDrFWR7ZyK2e0NeZTQ-QJtPpllIwNv5p-Km1MbwJSK1V8IuHkvOdeRbqJuXZ7Kz47Kjs4ByNwGHO91nMAzK2Fi4wSd8sRb0FEWWggrsXQGnQ1rWe1UxF0Tox84b8EfBBf2duGhsLqwCPorYJ_3BUTnjXlOPk3njGc_ZqBYOWAXU");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-white text-base font-bold leading-normal line-clamp-1">You</p>
+<p class="text-magenta-accent text-sm font-medium leading-normal line-clamp-2">15,320 PTS</p>
+</div>
+</div>
+</div>
+</div>
+</footer>
+</div>
+</body></html>

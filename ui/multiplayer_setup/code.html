@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Multiplayer Setup - Dinamit</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+      }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#6c0df2",
+              "background-light": "#f7f5f8",
+              "background-dark": "#0B1121",
+              "accent-cyan": "#00FFFF",
+              "accent-magenta": "#FF00FF",
+              "deep-navy": "#0B1121",
+              "glass-bg": "rgba(40, 24, 64, 0.5)",
+              "glass-border": "rgba(108, 13, 242, 0.4)"
+            },
+            fontFamily: {
+              "display": ["Space Grotesk", "sans-serif"]
+            },
+            borderRadius: {
+              "DEFAULT": "0.25rem",
+              "lg": "0.5rem",
+              "xl": "0.75rem",
+              "full": "9999px"
+            },
+            boxShadow: {
+                'glow-cyan': '0 0 15px rgba(0, 255, 255, 0.3)',
+                'glow-magenta': '0 0 20px rgba(255, 0, 255, 0.4)',
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-dark">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-deep-navy text-white overflow-x-hidden">
+<div class="flex items-center bg-deep-navy p-4 pb-2 justify-between sticky top-0 z-10">
+<div class="flex size-12 shrink-0 items-center justify-center">
+<span class="material-symbols-outlined text-white">arrow_back_ios_new</span>
+</div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Multiplayer Setup</h2>
+</div>
+<div class="flex flex-col flex-1 px-4 py-3">
+<div class="flex flex-col gap-4 mb-6 p-6 rounded-xl border border-glass-border bg-glass-bg backdrop-blur-sm">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-accent-cyan text-3xl">add_circle</span>
+<h3 class="text-white text-2xl font-bold tracking-tight">Create Room</h3>
+</div>
+<p class="text-gray-300 text-sm font-normal leading-normal">Setup a new game and challenge your friends.</p>
+<div class="flex flex-col gap-3 mt-2">
+<h4 class="text-gray-300 text-sm font-semibold tracking-wide">Select Game Mode</h4>
+<div class="grid grid-cols-2 gap-3">
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 px-4 bg-accent-cyan/10 text-accent-cyan text-sm font-bold border-2 border-accent-cyan shadow-glow-cyan">
+<span class="truncate">General Knowledge</span>
+</button>
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 px-4 bg-primary/20 text-gray-300 text-sm font-bold border border-primary/50">
+<span class="truncate">Science</span>
+</button>
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 px-4 bg-primary/20 text-gray-300 text-sm font-bold border border-primary/50">
+<span class="truncate">Pop Culture</span>
+</button>
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 px-4 bg-primary/20 text-gray-300 text-sm font-bold border border-primary/50">
+<span class="truncate">History</span>
+</button>
+</div>
+</div>
+<div class="flex flex-col gap-3 mt-2">
+<h4 class="text-gray-300 text-sm font-semibold tracking-wide">Invite Friends</h4>
+<div class="flex items-center gap-3 overflow-x-auto pb-2 -mx-2 px-2">
+<div class="flex flex-col items-center gap-2 flex-shrink-0">
+<button class="flex items-center justify-center w-16 h-16 rounded-full bg-primary/30 border-2 border-dashed border-primary">
+<span class="material-symbols-outlined text-primary text-3xl">add</span>
+</button>
+<span class="text-xs text-gray-400">Add</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-shrink-0">
+<div class="relative w-16 h-16 rounded-full border-2 border-accent-cyan p-0.5">
+<img alt="User avatar" class="w-full h-full object-cover rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLEi7AXgcs25EoaO25CxSU4hoC8P6vASQ1bJXczzeolqIEG2vIsWm_8h7pWYctfbThNMBjbH2p9EUp9DovjynqJP_ffwhwuJodcDTXmVHzXlbpkSUal2KmqRBXnPQ24sPs72tVytkuICUuwkQ9EaVGcfKsVBlPTxIOe05EM7fQgVp9Ww3EpmeO5Z6QZFEb1QTm0aQLJKN4Q62Dow69FWNvtrbMXSEVoCCZovNyAIZ716FlSsfV_jiNOf70pxMBlalZ1boQalj50NOp"/>
+<div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-deep-navy rounded-full"></div>
+</div>
+<span class="text-xs text-white">Alex</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-shrink-0">
+<div class="relative w-16 h-16 rounded-full border-2 border-primary p-0.5">
+<img alt="User avatar" class="w-full h-full object-cover rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBluP7Ezvm_yFfk_YGtfE8UIAvpQ_pYc3o1vUb4_x8hKCf4-1FLBW17WASagZ4_Gbvzt8B5gE-72TEs5zTOhk2lATwsFSIko652lEpPc5XEAVeq8MMTb8iVTS-rVVJKZKdXXYT45T-nRUQxzrVIOowq79MxUj8q0BwgDbry92RgukqAGt85HfxCGDGHdNQAi5ARzCYmm8Te5YWV8cFXGqwqqUigKDVNFOlBtkBUBY4YuqyHCDRE9cfYShfvqQvRO3OUo20v14QxIlGY"/>
+<div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-deep-navy rounded-full"></div>
+</div>
+<span class="text-xs text-white">Jada</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-shrink-0">
+<div class="relative w-16 h-16 rounded-full border-2 border-primary p-0.5">
+<img alt="User avatar" class="w-full h-full object-cover rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBceAyuHLPj7oFa7BJfawDyLqAjvS3_lplrVcpGFvKwrdZ7nI6H7rE-eq5OFu5dTNz36GbVdFdPYpcEtzb7w2FPM3u699otf79LmrsPlGBH2BSgaZKc816qjBeSklmGNFDN586-ojMSwn54KFHeIYyJlmYKDWtMR1Omit2j__ZSzwBdaaAQ0En0aN9toAV8j2NA9kQC_EJLoLfdcC_KY3EGbjH16rx6xoyK5e9M_yj4ijCSU6jm3_TTKp3kuLA9ZSqDqM5ubY5U1ca5"/>
+<div class="absolute bottom-0 right-0 w-4 h-4 bg-gray-500 border-2 border-deep-navy rounded-full"></div>
+</div>
+<span class="text-xs text-white">Mike</span>
+</div>
+</div>
+</div>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-accent-magenta text-white text-lg font-bold tracking-wider w-full mt-4 shadow-glow-magenta">
+<span class="truncate">START GAME</span>
+</button>
+</div>
+<div class="flex flex-col gap-4 p-6 rounded-xl border border-glass-border/50 bg-glass-bg/30 backdrop-blur-sm">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-3xl">login</span>
+<h3 class="text-white text-2xl font-bold tracking-tight">Join Room</h3>
+</div>
+<p class="text-gray-400 text-sm font-normal leading-normal">Enter a code to join an existing game room.</p>
+<div class="flex flex-col min-w-40 flex-1 mt-2">
+<div class="flex w-full flex-1 items-stretch rounded-xl">
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-2 focus:ring-accent-cyan/80 border-2 border-primary/50 bg-primary/20 h-14 placeholder:text-gray-400 p-4 text-base font-normal leading-normal tracking-widest text-center" placeholder="ENTER ROOM CODE" value=""/>
+</div>
+</div>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-white text-lg font-bold tracking-wider w-full mt-2">
+<span class="truncate">JOIN</span>
+</button>
+</div>
+</div>
+</div>
+
+</body></html>

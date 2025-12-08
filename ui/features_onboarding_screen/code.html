@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Features Onboarding Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#590df2",
+                        "background-light": "#f6f5f8",
+                        "background-dark": "#161022",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col">
+<!-- Top App Bar -->
+<header class="flex items-center p-4 pb-2 justify-between">
+<h1 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1">Explore Dinamit</h1>
+<button class="text-[#a490cb] text-base font-bold leading-normal tracking-[0.015em] shrink-0">Skip</button>
+</header>
+<!-- Spacer -->
+<div class="h-5"></div>
+<!-- Main Content: Features Grid -->
+<main class="flex-grow p-4">
+<div class="grid grid-cols-1 gap-4">
+<!-- Feature Card 1: Real-Time Multiplayer -->
+<div class="flex flex-1 gap-3 rounded-lg border border-[#433168] bg-[#221834] p-4 flex-col">
+<div class="text-primary">
+<span class="material-symbols-outlined" style="font-size: 28px;">bolt</span>
+</div>
+<div class="flex flex-col gap-1">
+<h2 class="text-white text-base font-bold leading-tight">Real-Time Multiplayer</h2>
+<p class="text-[#a490cb] text-sm font-normal leading-normal">Challenge friends or players worldwide in live trivia battles.</p>
+</div>
+</div>
+<!-- Feature Card 2: Diverse Categories -->
+<div class="flex flex-1 gap-3 rounded-lg border border-[#433168] bg-[#221834] p-4 flex-col">
+<div class="text-primary">
+<span class="material-symbols-outlined" style="font-size: 28px;">category</span>
+</div>
+<div class="flex flex-col gap-1">
+<h2 class="text-white text-base font-bold leading-tight">Diverse Categories</h2>
+<p class="text-[#a490cb] text-sm font-normal leading-normal">Thousands of questions across hundreds of exciting topics.</p>
+</div>
+</div>
+<!-- Feature Card 3: Exciting Mini-Games -->
+<div class="flex flex-1 gap-3 rounded-lg border border-[#433168] bg-[#221834] p-4 flex-col">
+<div class="text-primary">
+<span class="material-symbols-outlined" style="font-size: 28px;">joystick</span>
+</div>
+<div class="flex flex-col gap-1">
+<h2 class="text-white text-base font-bold leading-tight">Exciting Mini-Games</h2>
+<p class="text-[#a490cb] text-sm font-normal leading-normal">Quick-fire rounds and unique challenges between matches.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Section: Navigation -->
+<footer class="mt-auto">
+<!-- Page Indicators -->
+<div class="flex w-full flex-row items-center justify-center gap-3 py-5">
+<div class="h-2 w-2 rounded-full bg-[#433168]"></div>
+<div class="h-2 w-2 rounded-full bg-primary"></div>
+<div class="h-2 w-2 rounded-full bg-[#433168]"></div>
+</div>
+<!-- Single Button -->
+<div class="flex px-4 py-3 pb-8">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 flex-1 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:opacity-90 active:opacity-80">
+<span class="truncate">Next</span>
+</button>
+</div>
+</footer>
+</div>
+</body></html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Multiplayer Lobby</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0a07d5","background-light": "#f5f5f8",
+                        "background-dark": "#0B1121",},
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col dark group/design-root overflow-x-hidden">
+<div class="flex items-center bg-background-dark/50 p-4 pb-2 justify-between backdrop-blur-sm sticky top-0 z-10">
+<div class="flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined text-white text-2xl">arrow_back_ios_new</span>
+</div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">LOBBY</h2>
+<div class="flex size-12 shrink-0 items-center"></div>
+</div>
+<div class="p-4 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl @xl:flex-row @xl:items-start bg-[#191834]/50 backdrop-blur-sm border border-primary/30 shadow-[0_0_12px_rgba(10,7,213,0.3)]">
+<div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 @xl:px-4 px-4">
+<p class="text-white text-lg font-bold leading-tight tracking-widest">ROOM CODE: GTR45X</p>
+<div class="flex items-center gap-3 justify-between">
+<p class="text-[#908fcc] text-base font-normal leading-normal">Share this code to invite friends</p>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-4 bg-primary text-white text-sm font-medium leading-normal hover:bg-primary/80">
+<span class="truncate">Copy Code</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Players (4/8)</h3>
+<div class="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-4">
+<div class="flex flex-col gap-3 text-center pb-3">
+<div class="px-4 relative">
+<div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-full border-2 border-primary" data-alt="Avatar of Player 1, the host" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuArcA6yDMgMAUWhtoAJdkTjR6cIMdWyoPIZVaOrljcD5xeQYC3IYp7g_MinWf9NBGP1Kxh4rqD5vz4mcXK-uE3L3j1y-yd6PnjGqbrTpvUfMZQZbZF7J_33ucRyXkaF2k0w3OaMtoNGIgMdJwVfcs3J90sAMC4KLH8aw6XHSMU_8HJSqOrnl0WyUnWSqKgaAChfIOnGZmgW_UaOtQgvYQMTLrMIwC-qAPMuy6jiRUNK_RK5nTHxHrgMDwLN-f-MNtCSPigIc4gnnOK_");'></div>
+<div class="absolute top-0 right-4 bg-[#FFC107] p-1 rounded-full text-black">
+<span class="material-symbols-outlined text-base">workspace_premium</span>
+</div>
+</div>
+<div>
+<p class="text-white text-base font-medium leading-normal">Stark (Host)</p>
+<p class="text-[#39FF14] text-sm font-normal leading-normal">Ready</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 text-center pb-3">
+<div class="px-4">
+<div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-full" data-alt="Avatar of Player 2" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCDKOcVfC-Qh6ISV8GXVdQV76rrI9O8uNhFd92lNUWPGGk0YhFqqKPmRdY5D00ENuSZxnpGaNYlRfenXbW_-Hk-0pBNhj7Psjpg5hmVbIA5fBpKrEEmEXAo2YFFOmSppy9Z1IsZyn2hYhK6jDbIgYRrUo3SJ0Q0Ofnm_wwaqGwErqf-Gul6ZyakRVRs7ClA0t3F0Zb2ZLFLofZR0VH9NNbS2Cj_yGuHjerh3rfezBfQkOCoFPiBJcOTavrJ4HOvPQYwwsL2CIhRqk04");'></div>
+</div>
+<div>
+<p class="text-white text-base font-medium leading-normal">Rogers</p>
+<p class="text-[#908fcc] text-sm font-normal leading-normal">Waiting...</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 text-center pb-3">
+<div class="px-4">
+<div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-full" data-alt="Avatar of Player 3" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC2lt-bai0hP2mLCLN9ohZvQmklHkI0zyLbmK7K1rXYvAXZ9g8GR7hWKFi5Lagc0XUFYTm1kaLMcssnNoDG3l8P_xlXDdRcBVNDSpzQUvhQfztmdEItBbkW49i8w0oRHhBhwwizizhr6esXS1lCCg4YrBwotzeh1eYD0gQwN6s9iIStQyNjGc3Ryn_ddpJ6VMwkkkLIaKUQj0We_9pdYjr6SDXEQbdZkHdakKikz09Va4FV_8C_ZPgta-jV2TmJ05hHRuNrqXjZB6KF");'></div>
+</div>
+<div>
+<p class="text-white text-base font-medium leading-normal">Banner</p>
+<p class="text-[#39FF14] text-sm font-normal leading-normal">Ready</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 text-center pb-3">
+<div class="px-4">
+<div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-full" data-alt="Avatar of Player 4" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDbNYt4gD_z1TOYJqmp_sj_yJ-z-GEynd_d23g-6_kxiLfpLt160mNBHCeMaX-Mx5gTTJBycql9qEJOMIkse8hn8fP85jq5ZfOUSC1ZBzTWnHiF8XvFv1gq_m_VJiF6WZh8oupdUfUEb33ZK2V5AnjHYqe91FGMPvD9EZjbuyfFnfko7xPreE0yv2CB6gv8liy3goLjaa59FQ3vanuJI7gB4F7hkWQPeWU9cCFhtnEvXIewz_xZjG0NJvk9rxoNS-FmeCHnS6RiNJng");'></div>
+</div>
+<div>
+<p class="text-white text-base font-medium leading-normal">Romanoff</p>
+<p class="text-[#908fcc] text-sm font-normal leading-normal">Waiting...</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 text-center pb-3 justify-center">
+<div class="px-4">
+<div class="w-full bg-[#191834]/50 flex items-center justify-center aspect-square bg-cover rounded-full border-2 border-dashed border-[#908fcc]/50">
+<span class="material-symbols-outlined text-[#908fcc] text-4xl">add</span>
+</div>
+</div>
+<p class="text-white text-base font-medium leading-normal">Invite</p>
+</div>
+<div class="flex flex-col gap-3 text-center pb-3 justify-center">
+<div class="px-4">
+<div class="w-full bg-[#191834]/50 flex items-center justify-center aspect-square bg-cover rounded-full border-2 border-dashed border-[#908fcc]/50">
+<span class="material-symbols-outlined text-[#908fcc] text-4xl">add</span>
+</div>
+</div>
+<p class="text-white text-base font-medium leading-normal">Invite</p>
+</div>
+<div class="flex flex-col gap-3 text-center pb-3 justify-center">
+<div class="px-4">
+<div class="w-full bg-[#191834]/50 flex items-center justify-center aspect-square bg-cover rounded-full border-2 border-dashed border-[#908fcc]/50">
+<span class="material-symbols-outlined text-[#908fcc] text-4xl">add</span>
+</div>
+</div>
+<p class="text-white text-base font-medium leading-normal">Invite</p>
+</div>
+<div class="flex flex-col gap-3 text-center pb-3 justify-center">
+<div class="px-4">
+<div class="w-full bg-[#191834]/50 flex items-center justify-center aspect-square bg-cover rounded-full border-2 border-dashed border-[#908fcc]/50">
+<span class="material-symbols-outlined text-[#908fcc] text-4xl">add</span>
+</div>
+</div>
+<p class="text-white text-base font-medium leading-normal">Invite</p>
+</div>
+</div>
+<div class="sticky bottom-0 mt-auto p-4 bg-background-dark/80 backdrop-blur-sm border-t border-primary/20">
+<div class="flex flex-col gap-4">
+<button class="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-14 px-5 flex-1 bg-primary text-white gap-2 text-lg font-bold leading-normal tracking-[0.015em] shadow-[0_0_15px_rgba(10,7,213,0.5)]">
+<span class="truncate">READY</span>
+</button>
+<button class="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 flex-1 bg-white/10 text-white gap-2 text-base font-medium leading-normal tracking-[0.015em]">
+<span class="material-symbols-outlined text-white text-2xl">person_add</span>
+<span class="truncate">Invite Friends</span>
+</button>
+</div>
+</div>
+</div>
+
+</body></html>

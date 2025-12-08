@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dinamit - Gameplay Interface</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#6F00FF", // Electric Indigo
+              "secondary": "#FFBF00", // Golden Amber
+              "background-light": "#F0F2F5",
+              "background-dark": "#0B1121", // Deep Void Navy
+              "surface-dark": "rgba(28, 46, 68, 0.6)", // Glassmorphism surface
+              "cyan": "#00FFFF", // Neon Cyan
+              "magenta": "#FF00FF", // Vibrant Magenta
+              "correct": "#00FF7F",
+              "incorrect": "#FF3B30",
+            },
+            fontFamily: {
+              "display": ["Space Grotesk", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px"},
+            boxShadow: {
+                'glow-primary': '0 0 15px rgba(111, 0, 255, 0.6)',
+                'glow-cyan': '0 0 15px rgba(0, 255, 255, 0.6)',
+                'glow-secondary': '0 0 15px rgba(255, 191, 0, 0.6)',
+                'glow-correct': '0 0 15px rgba(0, 255, 127, 0.7)',
+                'glow-incorrect': '0 0 15px rgba(255, 59, 48, 0.7)',
+            },
+            backdropBlur: {
+                'xl': '20px',
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden text-white">
+<div class="absolute top-0 left-0 w-72 h-72 bg-primary/30 rounded-full filter blur-3xl opacity-30"></div>
+<div class="absolute bottom-0 right-0 w-72 h-72 bg-cyan/20 rounded-full filter blur-3xl opacity-30"></div>
+<div class="relative z-10 flex flex-col h-screen p-4 pt-6 space-y-4">
+<header class="flex flex-col gap-4">
+<div class="flex items-center justify-between gap-4">
+<div class="flex items-center gap-2">
+<img class="w-12 h-12 rounded-full border-2 border-primary" data-alt="User avatar with a purple border" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7Ya685choCgUflUjMw69irjNsv15czJhfOTDq2bBTWEtD-0RWDQ8ZMrLVnpncYm_MQFE7upnZBx8hqs1Nw8Ng6RuwzqgLSg1tSjZWz_cgmOtmZoFvfI0rR8rVT-v8umkrFt-8_4-0ioQqKFYag-LpE8G3P58gqQwjSSowc0wUE0CsUyamU1eIbnM79kRAt9Zn6c1hdl6JIsCM5Dgg836rlcEjP5NPdu5kSp_JZqkzyJ8NCjNrw5xGC1WBduQGvCp7BlxwScxwrk-O"/>
+<img class="w-10 h-10 rounded-full border-2 border-gray-600" data-alt="Opponent avatar with a grey border" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-6Tc9FFMIfFLi3tOMgx9_B9dwgtSqciiCB5r30uwctZebkzUmmNf-sKlwyHQX0cTSBKFw_70PUUN4Gnb0d3FzInE7j9-W8N83-76j8vszteoDDI9cdkjq3mrnuQOjhrKq1XugesFR264HdzaJnGHhZXisvbu4NI73FNw68AnIKg8oWIAEgzVgBOv9BRbULlzlTl-_BAXqNynG9QzlctOXkxdnTFlH84LEFUq2DWeEFme_qFR0_-V4NROB4COIRIy3bm8V8RCK87tm"/>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-xs font-medium text-gray-400">SCORE</span>
+<h2 class="text-2xl font-bold leading-tight tracking-tighter text-secondary">1250</h2>
+</div>
+<div class="relative flex items-center justify-center w-12 h-12">
+<svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+<circle class="stroke-current text-cyan/20" cx="18" cy="18" fill="none" r="16" stroke-width="2"></circle>
+<circle class="stroke-current text-cyan" cx="18" cy="18" fill="none" r="16" stroke-dasharray="100" stroke-dashoffset="25" stroke-linecap="round" stroke-width="2"></circle>
+</svg>
+<span class="absolute text-lg font-bold text-cyan">15s</span>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<p class="text-sm font-medium leading-normal text-gray-300">Question 5/10</p>
+<div class="w-full rounded-full h-2 bg-cyan/20">
+<div class="h-2 rounded-full bg-cyan shadow-glow-cyan" style="width: 50%;"></div>
+</div>
+</div>
+</header>
+<main class="flex flex-col flex-1 justify-center gap-6 pb-6">
+<div class="p-1 rounded-xl bg-gradient-to-br from-white/20 to-white/0 shadow-lg">
+<div class="flex flex-col items-stretch justify-start rounded-lg bg-surface-dark backdrop-blur-xl border border-white/10">
+<div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 p-6">
+<p class="text-white text-2xl font-bold leading-tight tracking-[-0.015em] text-center">Which planet is known as the Red Planet?</p>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-4">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-16 px-5 bg-surface-dark border border-cyan/50 text-white text-lg font-bold leading-normal transition-all hover:bg-cyan/20 hover:shadow-glow-cyan">
+<span class="truncate">Venus</span>
+</button>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-16 px-5 bg-correct/20 border-2 border-correct text-white text-lg font-bold leading-normal shadow-glow-correct">
+<span class="truncate">Mars</span>
+</button>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-16 px-5 bg-incorrect/20 border-2 border-incorrect text-white text-lg font-bold leading-normal shadow-glow-incorrect">
+<span class="truncate">Jupiter</span>
+</button>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-16 px-5 bg-primary/40 border-2 border-primary text-white text-lg font-bold leading-normal shadow-glow-primary scale-95 ring-2 ring-primary">
+<span class="truncate">Saturn</span>
+</button>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>

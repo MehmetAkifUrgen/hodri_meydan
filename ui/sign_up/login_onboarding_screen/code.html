@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dinamit - Sign Up/Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#690df2",
+              "background-light": "#f7f5f8",
+              "background-dark": "#171022",
+            },
+            fontFamily: {
+              "display": ["Space Grotesk", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .cyber-grid {
+            background-image:
+                linear-gradient(to right, rgba(105, 13, 242, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(105, 13, 242, 0.1) 1px, transparent 1px);
+            background-size: 3rem 3rem;
+            background-position: center center;
+        }
+        .bg-glow-radial {
+            background-image: radial-gradient(circle at 50% 20%, rgba(105, 13, 242, 0.3), transparent 50%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col items-center justify-between overflow-hidden bg-background-dark dark group/design-root p-4 cyber-grid">
+<!-- Background Glow -->
+<div class="absolute inset-0 z-0 bg-glow-radial"></div>
+<!-- Main Content -->
+<main class="relative z-10 flex w-full flex-1 flex-col items-center justify-center">
+<!-- Logo/Icon -->
+<div class="mb-8 flex h-24 w-24 items-center justify-center rounded-3xl border border-primary/30 bg-white/5 backdrop-blur-sm">
+<span class="material-symbols-outlined text-6xl text-primary" style="font-variation-settings: 'FILL' 1, 'wght' 400, 'opsz' 48;">
+                    bolt
+                </span>
+</div>
+<!-- PageIndicators -->
+<div class="mb-6 flex w-full flex-row items-center justify-center gap-3 py-5">
+<div class="h-2 w-2 rounded-full bg-primary/30"></div>
+<div class="h-2 w-2 rounded-full bg-primary/30"></div>
+<div class="h-2 w-2 rounded-full bg-primary/30"></div>
+<div class="h-2 w-2 rounded-full bg-primary"></div>
+</div>
+<!-- HeadlineText -->
+<h1 class="text-white tracking-light text-[32px] font-bold leading-tight px-4 text-center pb-3 pt-6">The Arena Awaits</h1>
+<!-- BodyText -->
+<p class="text-white/80 text-base font-normal leading-normal pb-3 pt-1 px-4 text-center">Real-time multiplayer trivia.</p>
+</main>
+<!-- Action Buttons Footer -->
+<footer class="relative z-10 w-full pb-4 pt-8">
+<!-- ButtonGroup -->
+<div class="flex justify-center">
+<div class="flex flex-1 gap-4 max-w-[480px] flex-col items-stretch px-4 py-3">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] w-full shadow-[0_0_20px_rgba(105,13,242,0.5)]">
+<span class="truncate">Sign Up</span>
+</button>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-white/10 text-white text-base font-bold leading-normal tracking-[0.015em] w-full border border-white/20 backdrop-blur-sm">
+<span class="truncate">Log In</span>
+</button>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-transparent text-white/70 text-base font-bold leading-normal tracking-[0.015em] w-full">
+<span class="truncate">Play as Guest</span>
+</button>
+</div>
+</div>
+</footer>
+</div>
+</body></html>
