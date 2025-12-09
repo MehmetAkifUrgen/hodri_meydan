@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../controllers/multiplayer_controller.dart';
+import '../../services/ad_service.dart';
 
 class MultiplayerResultsView extends ConsumerStatefulWidget {
   final String roomId;
@@ -34,6 +36,9 @@ class _MultiplayerResultsViewState
   Future<void> _processGameResults() async {
     final controller = ref.read(multiplayerControllerProvider.notifier);
     final myId = controller.userId;
+
+    // Show Ad
+    ref.read(adServiceProvider).showInterstitialAd();
 
     // Sort scores
     final sortedEntries = widget.finalScores.entries.toList()
@@ -90,67 +95,98 @@ class _MultiplayerResultsViewState
 
               // Winner Podium (Top 1)
               if (sortedEntries.isNotEmpty)
-                _buildWinnerCard(context, sortedEntries.first),
+                StreamBuilder<DocumentSnapshot>(
+                  stream: controller.roomStream(widget.roomId),
+                  builder: (context, snapshot) {
+                    final roomData =
+                        snapshot.data?.data() as Map<String, dynamic>?;
+                    final playersData =
+                        roomData?['playersData'] as Map<String, dynamic>? ?? {};
+                    return _buildWinnerCard(
+                      context,
+                      sortedEntries.first,
+                      playersData,
+                    );
+                  },
+                ),
 
               const SizedBox(height: 32),
 
               // Leaderboard List
               Expanded(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 24),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(10),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white12),
-                  ),
-                  child: ListView.separated(
-                    itemCount: sortedEntries.length,
-                    separatorBuilder: (_, __) =>
-                        const Divider(color: Colors.white10),
-                    itemBuilder: (context, index) {
-                      final entry = sortedEntries[index];
-                      final playerId = entry.key;
-                      final score = entry.value as int;
-                      final isMe = playerId == myId;
+                child: StreamBuilder<DocumentSnapshot>(
+                  stream: controller.roomStream(widget.roomId),
+                  builder: (context, snapshot) {
+                    final roomData =
+                        snapshot.data?.data() as Map<String, dynamic>?;
+                    final playersData =
+                        roomData?['playersData'] as Map<String, dynamic>? ?? {};
 
-                      return ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: isMe
-                                ? Colors.blueAccent.withAlpha(30)
-                                : Colors.white10,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Text(
-                            '#${index + 1}',
-                            style: GoogleFonts.spaceGrotesk(
-                              color: isMe ? Colors.blueAccent : Colors.white,
-                              fontWeight: FontWeight.bold,
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(10),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: ListView.separated(
+                        itemCount: sortedEntries.length,
+                        separatorBuilder: (_, __) =>
+                            const Divider(color: Colors.white10),
+                        itemBuilder: (context, index) {
+                          final entry = sortedEntries[index];
+                          final playerId = entry.key;
+                          final score = entry.value as int;
+                          final isMe = playerId == myId;
+
+                          final pData =
+                              playersData[playerId] as Map<String, dynamic>?;
+                          final name =
+                              pData?['username'] as String? ?? 'Oyuncu';
+                          final avatar = pData?['avatar'] as String?;
+
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: isMe
+                                  ? Colors.blueAccent.withAlpha(50)
+                                  : Colors.white10,
+                              backgroundImage: avatar != null
+                                  ? NetworkImage(avatar)
+                                  : null,
+                              child: avatar == null
+                                  ? Text(
+                                      '#${index + 1}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : null,
                             ),
-                          ),
-                        ),
-                        title: Text(
-                          isMe ? 'Sen' : 'Oyuncu ${playerId.substring(0, 4)}',
-                          style: TextStyle(
-                            color: isMe ? Colors.blueAccent : Colors.white70,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        trailing: Text(
-                          '$score Puan',
-                          style: GoogleFonts.spaceGrotesk(
-                            color: Colors.amber,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ).animate().fadeIn(
-                        delay: Duration(milliseconds: 200 * index),
-                      );
-                    },
-                  ),
+                            title: Text(
+                              isMe ? 'Sen ($name)' : name,
+                              style: TextStyle(
+                                color: isMe
+                                    ? Colors.blueAccent
+                                    : Colors.white70,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            trailing: Text(
+                              '$score Puan',
+                              style: GoogleFonts.spaceGrotesk(
+                                color: Colors.amber,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ).animate().fadeIn(
+                            delay: Duration(milliseconds: 200 * index),
+                          );
+                        },
+                      ),
+                    );
+                  },
                 ),
               ),
 
@@ -192,14 +228,27 @@ class _MultiplayerResultsViewState
   Widget _buildWinnerCard(
     BuildContext context,
     MapEntry<String, dynamic> winner,
+    Map<String, dynamic> playersData,
   ) {
+    final pid = winner.key;
+    final pData = playersData[pid] as Map<String, dynamic>?;
+    final name = pData?['username'] as String? ?? 'Oyuncu';
+    final avatar = pData?['avatar'] as String?;
+
     return Column(
       children: [
-        const Icon(
-          Icons.emoji_events,
-          color: Colors.amber,
-          size: 64,
-        ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
+        if (avatar != null)
+          CircleAvatar(
+            radius: 40,
+            backgroundImage: NetworkImage(avatar),
+          ).animate().scale(duration: 600.ms, curve: Curves.elasticOut)
+        else
+          const Icon(
+            Icons.emoji_events,
+            color: Colors.amber,
+            size: 64,
+          ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
+
         const SizedBox(height: 16),
         Text(
           'KAZANAN',
@@ -212,7 +261,7 @@ class _MultiplayerResultsViewState
         ),
         const SizedBox(height: 8),
         Text(
-          winner.key.substring(0, 4), // Placeholder name
+          name,
           style: GoogleFonts.spaceGrotesk(
             color: Colors.white,
             fontSize: 24,

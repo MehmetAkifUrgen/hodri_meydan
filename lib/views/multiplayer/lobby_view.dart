@@ -29,12 +29,26 @@ class _LobbyViewState extends ConsumerState<LobbyView> {
       previous,
       next,
     ) {
+      // Error Handling
       if (next.error != null && next.error != previous?.error) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.error!),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+
+      // Info/Status Handling
+      if (next.statusMessage != null &&
+          next.statusMessage != previous?.statusMessage) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.statusMessage!),
+            backgroundColor: Colors.blueAccent, // Use Blue for info
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -359,18 +373,15 @@ class _LobbyViewState extends ConsumerState<LobbyView> {
             final data = snapshot.data!.data() as Map<String, dynamic>?;
             if (data == null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Oda kapatıldı (Host ayrıldı)."),
-                    backgroundColor: Colors.orange,
-                  ),
-                );
-                controller.leaveRoom();
+                // Let local state clear via controller update
+                controller.onRoomClosed();
               });
               return const Center(child: CircularProgressIndicator());
             }
 
             final players = List<String>.from(data['players'] ?? []);
+            final playersData =
+                data['playersData'] as Map<String, dynamic>? ?? {};
             final readyPlayers = List<String>.from(data['readyPlayers'] ?? []);
             final hostId = data['hostId'] as String?;
             final selectedCategory =
@@ -401,6 +412,7 @@ class _LobbyViewState extends ConsumerState<LobbyView> {
                       initialCategories: List<String>.from(
                         data['currentCategories'] ?? [],
                       ),
+                      gameDuration: data['gameDuration'] as int? ?? 60,
                     ),
                   ),
                 );
@@ -555,11 +567,65 @@ class _LobbyViewState extends ConsumerState<LobbyView> {
                       const Divider(color: Colors.white10),
                       const SizedBox(height: 16),
 
-                      // Category Select (Only if Quiz)
-                      if (gameType == 'quiz')
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
+                      // Options (Category or Duration)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (gameType == 'nameCity') ...[
+                            const Text(
+                              'SÜRE',
+                              style: TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (isHost)
+                              DropdownButton<int>(
+                                value: (data['gameDuration'] as int?) ?? 60,
+                                dropdownColor: const Color(0xFF1E293B),
+                                underline: Container(),
+                                icon: const Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.white,
+                                ),
+                                style: GoogleFonts.spaceGrotesk(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                onChanged: (val) {
+                                  if (val != null) {
+                                    controller.setGameDuration(roomId, val);
+                                  }
+                                },
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: 60,
+                                    child: Text('60 Saniye'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 90,
+                                    child: Text('90 Saniye'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 120,
+                                    child: Text('120 Saniye'),
+                                  ),
+                                ],
+                              )
+                            else
+                              Text(
+                                '${(data['gameDuration'] as int?) ?? 60} Saniye',
+                                style: GoogleFonts.spaceGrotesk(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.secondary,
+                                ),
+                              ),
+                          ] else ...[
+                            // Quiz: Category Selector
                             const Text(
                               'KATEGORİ',
                               style: TextStyle(
@@ -623,7 +689,8 @@ class _LobbyViewState extends ConsumerState<LobbyView> {
                                 ),
                               ),
                           ],
-                        ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -689,6 +756,8 @@ class _LobbyViewState extends ConsumerState<LobbyView> {
                           isMe: isMe,
                           isHost: isPlayerHost,
                           isReady: isPlayerReady,
+                          playerData:
+                              playersData[playerId] as Map<String, dynamic>?,
                         );
                       } else {
                         return _buildEmptySlot(context);
@@ -907,7 +976,11 @@ class _LobbyViewState extends ConsumerState<LobbyView> {
     bool isMe = false,
     bool isHost = false,
     bool isReady = false,
+    Map<String, dynamic>? playerData,
   }) {
+    final avatarUrl = playerData?['avatar'] as String?;
+    final username = playerData?['username'] as String?;
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF191834).withAlpha(100),
@@ -929,13 +1002,18 @@ class _LobbyViewState extends ConsumerState<LobbyView> {
                 backgroundColor: isMe
                     ? Theme.of(context).colorScheme.secondary.withAlpha(50)
                     : Colors.white10,
-                child: Icon(
-                  Icons.person,
-                  color: isMe
-                      ? Theme.of(context).colorScheme.secondary
-                      : Colors.white,
-                  size: 30,
-                ),
+                backgroundImage: avatarUrl != null
+                    ? NetworkImage(avatarUrl)
+                    : null,
+                child: avatarUrl == null
+                    ? Icon(
+                        Icons.person,
+                        color: isMe
+                            ? Theme.of(context).colorScheme.secondary
+                            : Colors.white,
+                        size: 30,
+                      )
+                    : null,
               ),
               if (isHost)
                 Positioned(
@@ -976,11 +1054,13 @@ class _LobbyViewState extends ConsumerState<LobbyView> {
           ),
           const SizedBox(height: 12),
           Text(
-            isMe ? 'Sen' : 'Oyuncu ${index + 1}',
+            isMe ? 'Sen' : (username ?? 'Oyuncu ${index + 1}'),
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
             ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
           const SizedBox(height: 4),
           Text(

@@ -228,7 +228,7 @@ class _SettingsTile extends StatelessWidget {
       onChanged: onChanged,
       title: Text(title, style: const TextStyle(color: Colors.white)),
       secondary: Icon(icon, color: Theme.of(context).colorScheme.primary),
-      activeColor: Theme.of(context).colorScheme.primary,
+      activeTrackColor: Theme.of(context).colorScheme.primary,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
   }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../home/home_view.dart';
 import 'quiz_view.dart';
+import '../../services/ad_service.dart';
 
-class ScoreView extends StatelessWidget {
+class ScoreView extends ConsumerStatefulWidget {
   final int score;
   final int totalQuestions;
   final int correctAnswers;
@@ -15,6 +16,20 @@ class ScoreView extends StatelessWidget {
     required this.totalQuestions,
     required this.correctAnswers,
   });
+
+  @override
+  ConsumerState<ScoreView> createState() => _ScoreViewState();
+}
+
+class _ScoreViewState extends ConsumerState<ScoreView> {
+  @override
+  void initState() {
+    super.initState();
+    // Show Interstitial Ad when results load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(adServiceProvider).showInterstitialAd();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +61,7 @@ class ScoreView extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      '$score',
+                      '${widget.score}',
                       style: const TextStyle(
                         fontSize: 64,
                         fontWeight: FontWeight.bold,
@@ -61,11 +76,15 @@ class ScoreView extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildStatCard('Doğru', '$correctAnswers', Colors.green),
+                  _buildStatCard(
+                    'Doğru',
+                    '${widget.correctAnswers}',
+                    Colors.green,
+                  ),
                   const SizedBox(width: 20),
                   _buildStatCard(
                     'Yanlış',
-                    '${totalQuestions - correctAnswers}',
+                    '${widget.totalQuestions - widget.correctAnswers}',
                     Colors.red,
                   ),
                 ],

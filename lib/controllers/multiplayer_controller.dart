@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../data/services/api_service.dart';
 import '../services/firestore_service.dart';
 import '../services/ai_judge_service.dart';
@@ -18,6 +19,7 @@ class GameRoom {
   final List<String> readyPlayers;
   final String? selectedCategory;
   final String gameType; // 'quiz' or 'nameCity'
+  final int gameDuration; // 60, 90, 120
 
   GameRoom({
     required this.id,
@@ -28,6 +30,7 @@ class GameRoom {
     this.readyPlayers = const [],
     this.selectedCategory,
     this.gameType = 'quiz',
+    this.gameDuration = 60,
   });
 
   Map<String, dynamic> toMap() {
@@ -40,6 +43,7 @@ class GameRoom {
       'readyPlayers': readyPlayers,
       'selectedCategory': selectedCategory,
       'gameType': gameType,
+      'gameDuration': gameDuration,
     };
   }
 }
@@ -49,25 +53,32 @@ class MultiplayerState {
   final bool isLoading;
   final String? currentRoomId;
   final String? error;
+  final String? statusMessage; // New field for positive feedback
   final List<String> categories;
 
   MultiplayerState({
     this.isLoading = false,
     this.currentRoomId,
     this.error,
+    this.statusMessage,
     this.categories = const [],
   });
 
   MultiplayerState copyWith({
     bool? isLoading,
     String? currentRoomId,
+    bool clearCurrentRoomId = false,
     String? error,
+    String? statusMessage,
     List<String>? categories,
   }) {
     return MultiplayerState(
       isLoading: isLoading ?? this.isLoading,
-      currentRoomId: currentRoomId ?? this.currentRoomId,
-      error: error, // Allow clearing error
+      currentRoomId: clearCurrentRoomId
+          ? null
+          : (currentRoomId ?? this.currentRoomId),
+      error: error, // Can accept null to clear
+      statusMessage: statusMessage, // Can accept null to clear
       categories: categories ?? this.categories,
     );
   }
@@ -77,13 +88,37 @@ class MultiplayerState {
 class MultiplayerController extends StateNotifier<MultiplayerState> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final ApiService _apiService = ApiService();
-  final String _userId = const Uuid().v4();
+  final String _tempGuestId = const Uuid().v4(); // Fallback for guests
 
   MultiplayerController() : super(MultiplayerState()) {
     _loadCategories();
   }
 
-  String get userId => _userId;
+  String get userId => FirebaseAuth.instance.currentUser?.uid ?? _tempGuestId;
+
+  Future<Map<String, dynamic>> _getUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // Try to get from Firestore for latest profile, fallback to Auth
+      try {
+        final doc = await _firestore.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          final data = doc.data()!;
+          return {
+            'username': data['username'] ?? user.displayName ?? 'Misafir',
+            'avatar': data['profileImageUrl'] ?? user.photoURL,
+          };
+        }
+      } catch (e) {
+        debugPrint('Error fetching user data: $e');
+      }
+      return {
+        'username': user.displayName ?? 'Misafir',
+        'avatar': user.photoURL,
+      };
+    }
+    return {'username': 'Misafir', 'avatar': null};
+  }
 
   Future<void> _loadCategories() async {
     try {
@@ -105,17 +140,23 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
       // Generate 6 digit room code
       String roomCode = (100000 + Random().nextInt(900000)).toString();
 
+      final userData = await _getUserData();
+
       final room = GameRoom(
         id: roomCode,
         status: 'waiting',
-        players: [_userId],
+        players: [userId],
         createdAt: DateTime.now().millisecondsSinceEpoch,
-        hostId: _userId,
-        readyPlayers: [_userId],
+        hostId: userId,
+        readyPlayers: [userId],
         gameType: 'quiz', // Default
+        gameDuration: 60, // Default
       );
 
-      await _firestore.collection('rooms').doc(roomCode).set(room.toMap());
+      final roomMap = room.toMap();
+      roomMap['playersData'] = {userId: userData};
+
+      await _firestore.collection('rooms').doc(roomCode).set(roomMap);
 
       state = state.copyWith(isLoading: false, currentRoomId: roomCode);
     } catch (e) {
@@ -133,10 +174,10 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
       final data = doc.data() as Map<String, dynamic>;
       List<String> readyPlayers = List<String>.from(data['readyPlayers'] ?? []);
 
-      if (readyPlayers.contains(_userId)) {
-        readyPlayers.remove(_userId);
+      if (readyPlayers.contains(userId)) {
+        readyPlayers.remove(userId);
       } else {
-        readyPlayers.add(_userId);
+        readyPlayers.add(userId);
       }
 
       await docRef.update({'readyPlayers': readyPlayers});
@@ -165,6 +206,16 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
     }
   }
 
+  Future<void> setGameDuration(String roomId, int duration) async {
+    try {
+      await _firestore.collection('rooms').doc(roomId).update({
+        'gameDuration': duration,
+      });
+    } catch (e) {
+      debugPrint("Firestore Error (setGameDuration): $e");
+    }
+  }
+
   Future<void> startMultiplayerGame(String roomId) async {
     try {
       debugPrint('DEBUG: Attempting to start game for room: $roomId');
@@ -181,9 +232,10 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
       final selectedCategory = data['selectedCategory'] as String?;
       final hostId = data['hostId'] as String?;
       final gameType = data['gameType'] as String? ?? 'quiz';
+      final gameDuration = data['gameDuration'] as int? ?? 60;
 
       // Validate Host
-      if (hostId != _userId) {
+      if (hostId != userId) {
         debugPrint('Error: Only host can start game');
         return;
       }
@@ -223,7 +275,7 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
           'letters': letters,
           'currentRound': 1,
           'endTime': DateTime.now()
-              .add(const Duration(seconds: 60))
+              .add(Duration(seconds: gameDuration))
               .millisecondsSinceEpoch,
           'currentCategories': selectedCategories, // Store dynamic categories
         });
@@ -294,19 +346,22 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
         return;
       }
 
-      if (players.contains(_userId)) {
+      if (players.contains(userId)) {
         // Already joined, just enter
         state = state.copyWith(isLoading: false, currentRoomId: roomCode);
         return;
       }
 
+      final userData = await _getUserData();
+
       await _firestore.collection('rooms').doc(roomCode).update({
-        'players': FieldValue.arrayUnion([_userId]),
+        'players': FieldValue.arrayUnion([userId]),
+        'playersData.$userId': userData,
       });
 
       state = state.copyWith(isLoading: false, currentRoomId: roomCode);
     } catch (e) {
-      print("Firestore Error (joinRoom): $e");
+      debugPrint("Firestore Error (joinRoom): $e");
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -318,6 +373,11 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
 
   // Get available rooms stream
   Stream<List<Map<String, dynamic>>> get availableRoomsStream {
+    // 1 Hour ago
+    final oneHourAgo = DateTime.now()
+        .subtract(const Duration(hours: 1))
+        .millisecondsSinceEpoch;
+
     return _firestore
         .collection('rooms')
         .where('status', isEqualTo: 'waiting')
@@ -325,14 +385,22 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
         .limit(20)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            final data = doc.data();
-            data['id'] = doc.id;
-            return data;
-          }).toList();
+          return snapshot.docs
+              .where((doc) {
+                // Filter out stale rooms (older than 1 hour)
+                final data = doc.data();
+                final createdAt = data['createdAt'] as int? ?? 0;
+                return createdAt > oneHourAgo;
+              })
+              .map((doc) {
+                final data = doc.data();
+                data['id'] = doc.id;
+                return data;
+              })
+              .toList();
         })
         .handleError((e) {
-          print('Firestore Error (availableRoomsStream): $e');
+          debugPrint('Firestore Error (availableRoomsStream): $e');
           return const <Map<String, dynamic>>[];
         });
   }
@@ -350,11 +418,20 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
           .get();
 
       String? targetRoomId;
+      debugPrint(
+        "Quick Match: Found ${querySnapshot.docs.length} waiting rooms",
+      );
 
       for (var doc in querySnapshot.docs) {
         final data = doc.data();
         final players = List<String>.from(data['players'] ?? []);
-        if (players.length < 8) {
+        // Also check creation time for quick match
+        final createdAt = data['createdAt'] as int? ?? 0;
+        final oneHourAgo = DateTime.now()
+            .subtract(const Duration(hours: 1))
+            .millisecondsSinceEpoch;
+
+        if (players.length < 8 && createdAt > oneHourAgo) {
           targetRoomId = doc.id;
           break;
         }
@@ -362,13 +439,27 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
 
       if (targetRoomId != null) {
         await joinRoom(targetRoomId);
+        state = state.copyWith(
+          statusMessage: "Hızlı Eşleşme Başarılı! Odaya katıldın.",
+        );
       } else {
         // No room found, create one
         await createRoom();
+        state = state.copyWith(
+          statusMessage:
+              "Uygun açık oda bulunamadı. Senin için yeni bir oda oluşturuldu.",
+        );
       }
     } catch (e) {
-      print("Firestore Error (quickMatch): $e");
-      state = state.copyWith(isLoading: false, error: e.toString());
+      debugPrint("Firestore Error (quickMatch): $e");
+      String errorMessage = e.toString();
+      if (errorMessage.contains('failed-precondition')) {
+        errorMessage =
+            "Sistem yapılandırılıyor. Lütfen 1 dakika sonra tekrar deneyin.";
+      } else if (errorMessage.contains('requires an index')) {
+        errorMessage = "Sunucu dizini oluşturuluyor. Lütfen biraz bekleyin.";
+      }
+      state = state.copyWith(isLoading: false, error: errorMessage);
     }
   }
 
@@ -405,8 +496,8 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
       // 3. Update Player Score in Firestore
       // Using a 'scores' map: { 'userId': score }
       await roomRef.update({
-        'scores.$_userId': FieldValue.increment(points),
-        'answers.$_userId': {
+        'scores.$userId': FieldValue.increment(points),
+        'answers.$userId': {
           'questionIndex': questionIndex,
           'answer': answerIndex,
           'correct': answerIndex == correctAnswer,
@@ -424,7 +515,7 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
 
       if (updatedAnswers.length >= players.length) {
         // Everyone answered
-        if (hostId == _userId) {
+        if (hostId == userId) {
           // Only Host triggers next question
           Future.delayed(const Duration(seconds: 2), () {
             nextQuestion(roomId);
@@ -445,41 +536,44 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
       final doc = await docRef.get();
 
       if (!doc.exists) {
-        state = state.copyWith(currentRoomId: null);
-        return;
-      }
-
-      final data = doc.data() as Map<String, dynamic>;
-      final hostId = data['hostId'] as String?;
-      final players = List<String>.from(data['players'] ?? []);
-
-      if (hostId == _userId) {
-        // Host leaving -> Delete Room
-        debugPrint("DEBUG: Host leaving, deleting room $roomId");
-        await docRef.delete();
+        // Proceed to clear local state
       } else {
-        // Guest leaving -> Remove from lists
-        debugPrint("DEBUG: Guest leaving room $roomId");
-        await docRef.update({
-          'players': FieldValue.arrayRemove([_userId]),
-          'readyPlayers': FieldValue.arrayRemove([_userId]),
-        });
+        final data = doc.data() as Map<String, dynamic>;
+        final hostId = data['hostId'] as String?;
+        final players = List<String>.from(data['players'] ?? []);
 
-        // If room becomes empty (shouldn't happen if host logic works, but safe fallback)
-        if (players.length <= 1) {
+        if (hostId == userId) {
+          // Host leaving -> Delete Room
+          debugPrint("DEBUG: Host leaving, deleting room $roomId");
           await docRef.delete();
+        } else {
+          // Guest leaving -> Remove from lists
+          debugPrint("DEBUG: Guest leaving room $roomId");
+          await docRef.update({
+            'players': FieldValue.arrayRemove([userId]),
+            'readyPlayers': FieldValue.arrayRemove([userId]),
+          });
+
+          // If room becomes empty (shouldn't happen if host logic works, but safe fallback)
+          if (players.length <= 1) {
+            await docRef.delete();
+          }
         }
       }
-
-      state = state.copyWith(currentRoomId: null);
     } catch (e) {
       debugPrint("Firestore Error (leaveRoom): $e");
-      // Force leave locally on error
-      state = state.copyWith(
-        currentRoomId: null,
-        error: "Oda terk edilirken hata oluştu",
-      );
+      // Fallthrough to clear state
+    } finally {
+      // ALWAYS clear local state to unblock UI
+      state = state.copyWith(clearCurrentRoomId: true);
     }
+  }
+
+  void onRoomClosed() {
+    state = state.copyWith(
+      clearCurrentRoomId: true,
+      statusMessage: "Oda kapatıldı (Host ayrıldı).",
+    );
   }
 
   Future<void> nextQuestion(String roomId) async {
@@ -503,7 +597,7 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
       final firestoreService = FirestoreService();
 
       await firestoreService.updateUserStats(
-        uid: _userId,
+        uid: userId,
         earnedScore: myScore,
         isWin: isWin,
       );
@@ -523,7 +617,7 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
   }
 
   bool isHostWithId(String? hostId) {
-    return _userId == hostId;
+    return userId == hostId;
   }
 
   Future<void> submitNameCityAnswers(
@@ -532,9 +626,9 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
   ) async {
     try {
       await _firestore.collection('rooms').doc(roomId).update({
-        'roundAnswers.$_userId': answers,
+        'roundAnswers.$userId': answers,
       });
-      debugPrint('DEBUG: Answers submitted for $_userId');
+      debugPrint('DEBUG: Answers submitted for $userId');
     } catch (e) {
       debugPrint("Firestore Error (submitNameCityAnswers): $e");
     }
@@ -547,7 +641,7 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
 
       final data = doc.data() as Map<String, dynamic>;
       final hostId = data['hostId'] as String?;
-      if (hostId != _userId) return;
+      if (hostId != userId) return;
 
       debugPrint('DEBUG: Host ending round and calling AI Judge...');
 
@@ -557,6 +651,7 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
       final currentCategories = List<String>.from(
         data['currentCategories'] ?? [],
       );
+      final gameDuration = data['gameDuration'] as int? ?? 60;
 
       final roundAnswersRaw =
           data['roundAnswers'] as Map<String, dynamic>? ?? {};
@@ -603,7 +698,7 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
           'playerScores': currentScores,
           'lastRoundScores': scores, // Store round-specific scores
           'endTime': DateTime.now()
-              .add(const Duration(seconds: 60))
+              .add(Duration(seconds: gameDuration))
               .millisecondsSinceEpoch,
         });
       }

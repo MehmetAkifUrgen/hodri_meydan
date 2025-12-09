@@ -43,8 +43,7 @@ class NameCityConstants {
     'Cepten Çıkan Şey',
     'Salona Konulan Eşya',
     'Anne Terliği', // Belki fazla spesifik ama eğlenceli :) Şaka.
-    'Annenin Söylediği Söz' // Bu harfle başlama zorluğu yaratabilir ama deneyelim.
-        'Buzdolabında Olan Şey', // Zaten vardı ama buraya taşıyabiliriz.
+    'Annenin Söylediği Söz', // Bu harfle başlama zorluğu yaratabilir ama deneyelim.
     // Yiyecek & İçecek
     'Meyve / Sebze',
     'Tatlı',

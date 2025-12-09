@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../controllers/auth_controller.dart';
+import '../auth/email_login_view.dart';
 import '../home/home_view.dart';
 
 class LoginView extends ConsumerWidget {
@@ -16,6 +17,13 @@ class LoginView extends ConsumerWidget {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: ${next.error}')));
+      } else if (!next.isLoading && !next.hasError) {
+        // Success - Navigate to Home
+        Navigator.popUntil(context, (route) => route.isFirst);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeView()),
+        );
       }
     });
 
@@ -126,43 +134,46 @@ class LoginView extends ConsumerWidget {
 
                     const SizedBox(height: 16),
 
-                    /*
-                  // Apple Sign In (Placeholder - Disabled for initial release)
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Yakında gelecek!')),
-                      );
-                    },
-                    icon: const Icon(Icons.apple, size: 28),
-                    label: Text(
-                      'Apple ile Giriş Yap',
-                      style: GoogleFonts.spaceGrotesk(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    // Apple Sign In
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        ref
+                            .read(authControllerProvider.notifier)
+                            .signInWithApple();
+                      },
+                      icon: const Icon(Icons.apple, size: 28),
+                      label: Text(
+                        'Apple ile Giriş Yap',
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
-                    ),
-                  ).animate().fadeIn(delay: 800.ms).slideY(begin: 0.2),
+                    ).animate().fadeIn(delay: 800.ms).slideY(begin: 0.2),
 
-                  const SizedBox(height: 16),
-                  */
+                    const SizedBox(height: 16),
 
                     // Email Login
                     OutlinedButton.icon(
                       onPressed: () {
-                        // Navigate to Email Login Form
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const EmailLoginView(),
+                          ),
+                        );
                       },
                       icon: const Icon(Icons.email_outlined, size: 24),
                       label: Text(
-                        'E-posta ile Giriş Yap',
+                        'E-posta ile Giriş / Kayıt',
                         style: GoogleFonts.spaceGrotesk(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

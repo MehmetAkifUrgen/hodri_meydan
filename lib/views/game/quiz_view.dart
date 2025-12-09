@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../controllers/game_controller.dart';
 import '../../services/audio_service.dart';
 
@@ -260,7 +261,30 @@ class _QuizViewState extends ConsumerState<QuizView> {
                 ),
                 child: Column(
                   children: [
-                    if (question.imageUrl != null &&
+                    if (question.flagSvg != null &&
+                        question.flagSvg!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: SvgPicture.network(
+                            question.flagSvg!,
+                            height: 120,
+                            fit: BoxFit
+                                .contain, // Contain flags to avoid cropping
+                            placeholderBuilder: (context) => const SizedBox(
+                              height: 120,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    else if (question.imageUrl != null &&
                         question.imageUrl!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 20),

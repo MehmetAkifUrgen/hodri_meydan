@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../controllers/multiplayer_controller.dart';
 import 'multiplayer_results_view.dart';
 
@@ -158,6 +159,7 @@ class _MultiplayerQuizViewState extends ConsumerState<MultiplayerQuizView> {
                 questions[currentQuestionIndex] as Map<String, dynamic>;
             final questionText = questionData['question'] as String;
             final imageUrl = questionData['image_url'] as String?;
+            final flagSvg = questionData['flag_svg'] as String?;
             final options = List<String>.from(questionData['options'] ?? []);
             final correctAnswerIndex = questionData['correct_answer'] as int;
 
@@ -218,7 +220,32 @@ class _MultiplayerQuizViewState extends ConsumerState<MultiplayerQuizView> {
                       child: Column(
                         children: [
                           // Image if available
-                          if (imageUrl != null && imageUrl.isNotEmpty)
+                          // Image or Flag if available
+                          if (flagSvg != null && flagSvg.isNotEmpty)
+                            Container(
+                              height: 150,
+                              margin: const EdgeInsets.only(bottom: 24),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.white12),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: SvgPicture.network(
+                                  flagSvg,
+                                  fit: BoxFit.contain,
+                                  placeholderBuilder: (context) => Container(
+                                    height: 150,
+                                    alignment: Alignment.center,
+                                    child: const CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          else if (imageUrl != null && imageUrl.isNotEmpty)
                             Container(
                               height: 200,
                               margin: const EdgeInsets.only(bottom: 24),

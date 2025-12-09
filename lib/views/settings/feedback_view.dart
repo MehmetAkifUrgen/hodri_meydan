@@ -100,7 +100,7 @@ class _FeedbackViewState extends ConsumerState<FeedbackView> {
             Text(
               "Uygulamayı geliştirmemize yardımcı olmak için önerilerinizi veya karşılaştığınız sorunları bizimle paylaşın.",
               style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
                 fontSize: 14,
               ),
             ),
@@ -111,7 +111,9 @@ class _FeedbackViewState extends ConsumerState<FeedbackView> {
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: "Buraya yazın...",
-                hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                hintStyle: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.3),
+                ),
                 filled: true,
                 fillColor: const Color(0xFF1E1B2E),
                 border: OutlineInputBorder(

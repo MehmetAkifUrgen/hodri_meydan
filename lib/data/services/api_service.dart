@@ -68,6 +68,7 @@ class ApiService {
     bool isStandard = true;
     bool isMovie = false;
     bool isCharacter = false;
+    bool isFlag = false;
 
     if (data.isNotEmpty) {
       // Find first non-null map to sniff structure
@@ -81,6 +82,16 @@ class ApiService {
       if (firstItem.isNotEmpty) {
         if (firstItem.containsKey('question')) {
           isStandard = true;
+        } else if (firstItem.containsKey('flag_svg')) {
+          isStandard = false;
+          isFlag = true;
+          // Collect all names/countries for distractors
+          validAnswers = data
+              .whereType<Map<String, dynamic>>()
+              .map((e) => e['name'] as String?)
+              .where((e) => e != null && e.isNotEmpty)
+              .cast<String>()
+              .toList();
         } else if (firstItem.containsKey('movie_title')) {
           isStandard = false;
           isMovie = true;
@@ -118,9 +129,14 @@ class ApiService {
           // Dynamic Generation
           String correctAnswer = '';
           String? imageUrl;
+          String? flagSvgVal;
           String questionText = 'Görseldeki nedir?';
 
-          if (isMovie) {
+          if (isFlag) {
+            correctAnswer = item['name'] as String? ?? '';
+            flagSvgVal = item['flag_svg'] as String?;
+            questionText = 'Görseldeki ülke hangisidir?';
+          } else if (isMovie) {
             correctAnswer = item['movie_title'] as String? ?? '';
             imageUrl = item['scene_image_url'] as String?;
             questionText = 'Görseldeki film hangisidir?';
@@ -130,8 +146,9 @@ class ApiService {
             questionText = 'Görseldeki karakter kimdir?';
           }
 
-          // Only add if we have a valid answer and image
-          if (correctAnswer.isNotEmpty && imageUrl != null) {
+          // Only add if we have a valid answer and (image OR flag)
+          if (correctAnswer.isNotEmpty &&
+              (imageUrl != null || flagSvgVal != null)) {
             // Generate Options
             final options = List<String>.from(validAnswers);
             options.remove(correctAnswer); // Remove self
@@ -148,6 +165,7 @@ class ApiService {
                 correctAnswerIndex: finalOptions.indexOf(correctAnswer),
                 category: category,
                 imageUrl: imageUrl,
+                flagSvg: flagSvgVal,
               ),
             );
           }

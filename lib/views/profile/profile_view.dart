@@ -3,11 +3,29 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+
+import '../settings/settings_view.dart';
+import '../../services/firestore_service.dart';
 import '../../controllers/auth_controller.dart';
 import '../../data/models/user_model.dart';
 
 class ProfileView extends ConsumerWidget {
   const ProfileView({super.key});
+
+  final List<String> _avatarOptions = const [
+    'https://api.dicebear.com/7.x/adventurer/png?seed=Felix',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=Aneka',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=Loki',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=Zoe',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=Jack',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=Bella',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=Midnight',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=Ginger',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=Salem',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=Luna',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=Max',
+    'https://api.dicebear.com/7.x/adventurer/png?seed=Coco',
+  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,7 +71,10 @@ class ProfileView extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.settings, color: Colors.white),
                 onPressed: () {
-                  // Settings logic
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SettingsView()),
+                  );
                 },
               ),
             ],
@@ -134,7 +155,11 @@ class ProfileView extends ConsumerWidget {
                                     color: Colors.white,
                                   ),
                                   onPressed: () {
-                                    // Edit Profile Logic
+                                    _showAvatarSelectionDialog(
+                                      context,
+                                      ref,
+                                      displayUser.id,
+                                    );
                                   },
                                   constraints: const BoxConstraints.tightFor(
                                     width: 32,
@@ -413,13 +438,104 @@ class ProfileView extends ConsumerWidget {
     );
   }
 
-  // Helper for safe substring
   int min(int a, int b) => a < b ? a : b;
+
+  void _showAvatarSelectionDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String uid,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.5),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Avatar Seç',
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: _avatarOptions.length,
+                itemBuilder: (context, index) {
+                  final avatarUrl = _avatarOptions[index];
+                  return GestureDetector(
+                    onTap: () async {
+                      Navigator.pop(context);
+                      try {
+                        await ref
+                            .read(firestoreServiceProvider)
+                            .updateProfileImage(uid, avatarUrl);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Avatar güncellendi!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        // Error handling
+                      }
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: ClipOval(
+                        child: Image.network(avatarUrl, fit: BoxFit.cover),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _showLinkAccountDialog(BuildContext context, WidgetRef ref) {
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
-    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    final usernameController = TextEditingController();
+
+    // Pre-fill username if available, or leave empty/hinted
+    final currentUsername = ref.read(userProvider).value?.username;
+    if (currentUsername != null && !currentUsername.startsWith('Misafir')) {
+      usernameController.text = currentUsername;
+    }
+
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
@@ -430,15 +546,32 @@ class ProfileView extends ConsumerWidget {
           style: TextStyle(color: Colors.white),
         ),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'Misafir hesabınızı kaybetmemek için e-posta ve şifre belirleyin.',
+                'Misafir hesabınızı kaybetmemek için bilgilerinizi girin.',
                 style: TextStyle(color: Colors.white70),
               ),
               const SizedBox(height: 16),
+              TextFormField(
+                controller: usernameController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Kullanıcı Adı',
+                  labelStyle: TextStyle(color: Colors.white70),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white24),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blueAccent),
+                  ),
+                ),
+                validator: (value) =>
+                    value!.length >= 3 ? null : 'En az 3 karakter',
+              ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: emailController,
                 style: const TextStyle(color: Colors.white),
@@ -483,7 +616,7 @@ class ProfileView extends ConsumerWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              if (_formKey.currentState!.validate()) {
+              if (formKey.currentState!.validate()) {
                 try {
                   Navigator.pop(context); // Close dialog
                   // Show loading
@@ -496,6 +629,7 @@ class ProfileView extends ConsumerWidget {
                       .linkAccount(
                         emailController.text.trim(),
                         passwordController.text.trim(),
+                        usernameController.text.trim(),
                       );
 
                   if (context.mounted) {

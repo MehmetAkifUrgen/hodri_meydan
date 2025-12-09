@@ -5,12 +5,11 @@ import 'dart:convert';
 class AiJudgeService {
   late final GenerativeModel _model;
   // TODO: Secure this key properly in production (e.g. buildConfigField or retrieving from backend)
-  static const String _apiKey = 'AIzaSyCa3e7DKe0iNLhd-5iyz8g-UofK-IS4_r8';
+  static const String _apiKey = 'AIzaSyCTMjom5WL-DslbKqRpJCvYQTdlWhMs6aQ';
 
   AiJudgeService() {
     _model = GenerativeModel(
-      model:
-          'gemini-2.5-flash', // Using 1.5 Flash as "2.5" is likely a typo or future version
+      model: 'gemini-2.5-flash',
       apiKey: _apiKey,
       generationConfig: GenerationConfig(
         responseMimeType: 'application/json', // Force JSON
@@ -25,13 +24,13 @@ class AiJudgeService {
   /// [answers]: Map of PlayerID -> {Category -> Answer}.
   ///
   /// Returns a Map of PlayerID -> Score for this round.
-  Future<Map<String, int>> evaluateAnswers({
+  /// Evaluates answers with detailed breakdown.
+  Future<Map<String, AiEvaluationResult>> evaluateAnswersDetailed({
     required String letter,
     required List<String> categories,
     required Map<String, Map<String, String>> answers,
   }) async {
     try {
-      // 1. Construct the Prompt
       final buffer = StringBuffer();
       buffer.writeln(
         "You are the judge of a 'Name City' (İsim Şehir) game in Turkish.",
@@ -44,66 +43,92 @@ class AiJudgeService {
       buffer.writeln(
         "1. Evaluate each answer. It MUST start with the target letter.",
       );
-      buffer.writeln("2. Check validity based on the category type:");
+      buffer.writeln("2. Scoring Rules (Range 0-15):");
+      buffer.writeln("   - 0 points: Incorrect, Empty, or Wrong start letter.");
       buffer.writeln(
-        "   - **Fact-Based Categories** (City, Country, Animal, Name, etc.):",
+        "   - 1-15 points: Valid answer. Grade granularity based on rarity/creativity.",
       );
-      buffer.writeln("     - Correct: 10 points.");
-      buffer.writeln("     - Incorrect: 0 points.");
+      buffer.writeln("     * Example: Common answer = 5-7 pts.");
+      buffer.writeln("     * Example: Good answer = 8-10 pts.");
+      buffer.writeln("     * Example: Unique/Funny answer = 11-15 pts.");
       buffer.writeln(
-        "   - **Open-Ended / Scenario Categories** (e.g., 'Thing in Fridge', 'Reason to be late'):",
-      );
-      buffer.writeln(
-        "     - **Top Answer (Highly Relevant/Common)**: 20 points (e.g., Category: 'Kitchen Item', Answer: 'Fork').",
+        "   - Give precise scores (e.g. 7, 9, 12, 14) not just multiples of 5.",
       );
       buffer.writeln(
-        "     - **Good Answer**: 10 points (e.g., Category: 'Kitchen Item', Answer: 'Radio' - if rare but possible).",
+        "3. Respond with a JSON object. Key = Player ID. Value = Object with 'total' (int) and 'breakdown' (Map<Category, int>).",
       );
-      buffer.writeln("     - **Weak Answer**: 5 points.");
-      buffer.writeln("     - **Invalid**: 0 points.");
-      buffer.writeln(
-        "3. Respond with a JSON object mapping ONLY Player ID to Total Score.",
-      );
+      buffer.writeln("Example JSON structure:");
+      buffer.writeln('''
+      {
+        "player1": {
+          "total": 30,
+          "breakdown": {
+            "Name": 10,
+            "City": 10,
+            "Animal": 0,
+            "Plant": 10
+          }
+        }
+      }
+      ''');
 
       final prompt = buffer.toString();
-      debugPrint('DEBUG: AI Prompt: $prompt');
+      debugPrint('DEBUG: AI detailed Prompt: $prompt');
 
-      // 2. Call Gemini (with 10s timeout)
       final content = [Content.text(prompt)];
       final response = await _model
           .generateContent(content)
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 15));
 
       final responseText = response.text;
-      debugPrint('DEBUG: AI Response: $responseText');
+      debugPrint('DEBUG: AI detailed Response: $responseText');
 
       if (responseText == null) return {};
 
-      // 3. Parse JSON
-      final Map<String, dynamic> jsonMap = jsonDecode(responseText);
-      return jsonMap.map((key, value) => MapEntry(key, (value as num).toInt()));
+      // Cleanup markdown code blocks if present
+      String cleanJson = responseText;
+      if (cleanJson.contains('```json')) {
+        cleanJson = cleanJson.split('```json')[1].split('```')[0].trim();
+      } else if (cleanJson.contains('```')) {
+        cleanJson = cleanJson.split('```')[1].split('```')[0].trim();
+      }
+
+      final Map<String, dynamic> jsonMap = jsonDecode(cleanJson);
+      return jsonMap.map((key, value) {
+        final valMap = value as Map<String, dynamic>;
+        return MapEntry(
+          key,
+          AiEvaluationResult(
+            totalScore: (valMap['total'] as num).toInt(),
+            breakdown: Map<String, int>.from(valMap['breakdown']),
+          ),
+        );
+      });
     } catch (e) {
-      debugPrint("AI Judge Error: $e");
-      // Fallback: Give simple points based on non-empty
-      return _fallbackScoring(letter, answers);
+      debugPrint("AI Judge Detailed Error: $e");
+      return {};
     }
   }
 
-  Map<String, int> _fallbackScoring(
-    String letter,
-    Map<String, Map<String, String>> answers,
-  ) {
-    final scores = <String, int>{};
-    answers.forEach((pid, pAnswers) {
-      int score = 0;
-      pAnswers.forEach((cat, val) {
-        if (val.trim().isNotEmpty &&
-            val.trim().toUpperCase().startsWith(letter)) {
-          score += 10;
-        }
-      });
-      scores[pid] = score;
-    });
-    return scores;
+  // Keep original for backward compatibility if needed, or update it to use the detailed one
+  Future<Map<String, int>> evaluateAnswers({
+    required String letter,
+    required List<String> categories,
+    required Map<String, Map<String, String>> answers,
+  }) async {
+    // Re-use detailed logic to ensure consistency
+    final detailed = await evaluateAnswersDetailed(
+      letter: letter,
+      categories: categories,
+      answers: answers,
+    );
+    return detailed.map((key, value) => MapEntry(key, value.totalScore));
   }
+}
+
+class AiEvaluationResult {
+  final int totalScore;
+  final Map<String, int> breakdown;
+
+  AiEvaluationResult({required this.totalScore, required this.breakdown});
 }

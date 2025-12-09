@@ -13,6 +13,7 @@ class MultiplayerNameCityView extends ConsumerStatefulWidget {
   final int initialRound;
   final int endTime;
   final List<String> initialCategories;
+  final int gameDuration; // Passed from lobby
 
   const MultiplayerNameCityView({
     super.key,
@@ -21,6 +22,7 @@ class MultiplayerNameCityView extends ConsumerStatefulWidget {
     required this.initialRound,
     required this.endTime,
     required this.initialCategories,
+    this.gameDuration = 60,
   });
 
   @override
@@ -52,7 +54,7 @@ class _MultiplayerNameCityViewState
 
     _timerController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 60),
+      duration: Duration(seconds: widget.gameDuration),
     );
 
     _startRound(widget.endTime);
@@ -73,19 +75,30 @@ class _MultiplayerNameCityViewState
   void _startRound(int endTime) {
     final now = DateTime.now().millisecondsSinceEpoch;
     final remainingMs = endTime - now;
-    _secondsRemaining = (remainingMs / 1000).clamp(0, 60).toInt();
+    _secondsRemaining = (remainingMs / 1000)
+        .clamp(0, widget.gameDuration)
+        .toInt();
 
-    _timerController.duration = const Duration(seconds: 60);
-    double startValue = 1.0 - (_secondsRemaining / 60.0);
-    _timerController.forward(from: startValue);
+    // Reset controller
+    _timerController.duration = Duration(seconds: newRoundDuration());
+    // Actually we want the controller to represent the FULL duration visual
+    // But we are starting in the middle potentially.
+    // Progress = remaining / total
+
+    double progress = _secondsRemaining / widget.gameDuration.toDouble();
+    _timerController.value = 1.0 - progress; // value goes 0..1
+    _timerController.duration = Duration(seconds: widget.gameDuration);
+    _timerController.forward(from: 1.0 - progress);
 
     _localTimer?.cancel();
     _localTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
-          if (_secondsRemaining > 0) {
-            _secondsRemaining--;
-          } else {
+          final now = DateTime.now().millisecondsSinceEpoch;
+          final diff = (endTime - now) / 1000;
+          _secondsRemaining = diff.ceil().clamp(0, widget.gameDuration);
+
+          if (_secondsRemaining <= 0) {
             _timerController.stop();
             timer.cancel();
             _autoSubmit();
@@ -109,6 +122,8 @@ class _MultiplayerNameCityViewState
 
     _submitted = false;
   }
+
+  int newRoundDuration() => widget.gameDuration;
 
   void _autoSubmit() {
     if (!_submitted) {
@@ -205,7 +220,14 @@ class _MultiplayerNameCityViewState
 
               if (lastRoundScores.isNotEmpty) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _showRoundSummary(context, serverRound - 1, lastRoundScores);
+                  final playersData =
+                      data['playersData'] as Map<String, dynamic>? ?? {};
+                  _showRoundSummary(
+                    context,
+                    serverRound - 1,
+                    lastRoundScores,
+                    playersData,
+                  );
                 });
               }
 
@@ -320,7 +342,7 @@ class _MultiplayerNameCityViewState
                             padding: const EdgeInsets.only(bottom: 12),
                             child: _buildInputField(
                               category,
-                              '$category girin (${currentLetter})',
+                              '$category girin ($currentLetter)',
                               _controllers[category] ?? TextEditingController(),
                             ),
                           );
@@ -395,7 +417,7 @@ class _MultiplayerNameCityViewState
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: TextStyle(
-                color: const Color(0xFFA490CB).withOpacity(0.5),
+                color: const Color(0xFFA490CB).withValues(alpha: 0.5),
               ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
@@ -413,6 +435,7 @@ class _MultiplayerNameCityViewState
     BuildContext context,
     int roundNumber,
     Map<String, dynamic> scores,
+    Map<String, dynamic> playersData,
   ) {
     showDialog(
       context: context,
@@ -435,10 +458,19 @@ class _MultiplayerNameCityViewState
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: scores.entries.map((e) {
+              final pid = e.key;
+              final pData = playersData[pid] as Map<String, dynamic>?;
+              final name =
+                  pData?['username'] as String? ??
+                  "Oyuncu ${pid.substring(0, 4)}";
+              final avatar = pData?['avatar'] as String?;
+
               return ListTile(
+                leading: avatar != null
+                    ? CircleAvatar(backgroundImage: NetworkImage(avatar))
+                    : const Icon(Icons.person, color: Colors.white70),
                 title: Text(
-                  // Show abbreviated ID if no username available locally
-                  "Oyuncu ${e.key.substring(0, 4)}",
+                  name,
                   style: const TextStyle(color: Colors.white70),
                 ),
                 trailing: Text(

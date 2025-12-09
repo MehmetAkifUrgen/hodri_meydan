@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users Collection
+    // Allow anyone logged in to READ user profiles (for Leaderboard)
+    // Allow users to WRITE only their own profile
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Rooms Collection (Multiplayer)
+    // Allow authenticated users to read and write room data (create, join, update game state)
+    match /rooms/{roomId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Feedback Collection
+    // Allow authenticated users to submit feedback
+    match /feedback/{feedbackId} {
+      allow create: if request.auth != null;
+    }
+  }
+}

@@ -11,6 +11,8 @@ class UserModel {
   final int gamesPlayed;
   final int wins;
   final int totalScore;
+  final int lives;
+  final DateTime? lastLifeRegen;
 
   UserModel({
     required this.id,
@@ -23,6 +25,8 @@ class UserModel {
     this.gamesPlayed = 0,
     this.wins = 0,
     this.totalScore = 0,
+    this.lives = 5,
+    this.lastLifeRegen,
   });
 
   Map<String, dynamic> toMap() {
@@ -36,6 +40,10 @@ class UserModel {
       'gamesPlayed': gamesPlayed,
       'wins': wins,
       'totalScore': totalScore,
+      'lives': lives,
+      'lastLifeRegen': lastLifeRegen != null
+          ? Timestamp.fromDate(lastLifeRegen!)
+          : null,
       'lastActive': FieldValue.serverTimestamp(),
     };
   }
@@ -52,6 +60,10 @@ class UserModel {
       gamesPlayed: map['gamesPlayed'] ?? 0,
       wins: map['wins'] ?? 0,
       totalScore: map['totalScore'] ?? 0,
+      lives: map['lives'] ?? 5,
+      lastLifeRegen: map['lastLifeRegen'] != null
+          ? (map['lastLifeRegen'] as Timestamp).toDate()
+          : null,
     );
   }
 
@@ -64,6 +76,8 @@ class UserModel {
     int? gamesPlayed,
     int? wins,
     int? totalScore,
+    int? lives,
+    DateTime? lastLifeRegen,
   }) {
     return UserModel(
       id: id,
@@ -76,6 +90,8 @@ class UserModel {
       gamesPlayed: gamesPlayed ?? this.gamesPlayed,
       wins: wins ?? this.wins,
       totalScore: totalScore ?? this.totalScore,
+      lives: lives ?? this.lives,
+      lastLifeRegen: lastLifeRegen ?? this.lastLifeRegen,
     );
   }
 }
