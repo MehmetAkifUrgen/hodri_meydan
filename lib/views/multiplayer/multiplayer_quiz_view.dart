@@ -27,6 +27,7 @@ class _MultiplayerQuizViewState extends ConsumerState<MultiplayerQuizView> {
   int _timeLeft = 20;
   int _currentQuestionIndexCache = -1;
   int? _lastPrecachedIndex; // Track pre-caching to avoid spam
+  bool _isNavigating = false; // Prevent multiple navigations
   late Stream<DocumentSnapshot> _roomStream;
 
   @override
@@ -166,20 +167,24 @@ class _MultiplayerQuizViewState extends ConsumerState<MultiplayerQuizView> {
           // Check Game Over (Status or Index)
           if (data['status'] == 'finished' ||
               currentQuestionIndex >= questions.length) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MultiplayerResultsView(
-                    roomId: widget.roomId,
-                    finalScores: Map<String, dynamic>.from(
-                      data['scores'] ?? {},
+            if (!_isNavigating) {
+              _isNavigating = true; // Set flag immediately
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MultiplayerResultsView(
+                      roomId: widget.roomId,
+                      finalScores: Map<String, dynamic>.from(
+                        data['scores'] ?? {},
+                      ),
+                      totalQuestions: questions.length,
                     ),
-                    totalQuestions: questions.length,
                   ),
-                ),
-              );
-            });
+                );
+              });
+            }
             return const Scaffold(
               backgroundColor: Color(0xFF0B1121),
               body: Center(child: CircularProgressIndicator()),
@@ -731,87 +736,78 @@ class _MultiplayerQuizViewState extends ConsumerState<MultiplayerQuizView> {
               // The Avatars
               ...playersList.map((uid) {
                 final score = scores[uid] ?? 0;
-                return FutureBuilder<DocumentSnapshot>(
-                  future: FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(uid)
-                      .get(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) return const SizedBox();
-                    final userData =
-                        snapshot.data!.data() as Map<String, dynamic>;
 
-                    final String? avatarUrl = userData['avatar'] as String?;
-                    final bool hasValidUrl =
-                        avatarUrl != null && avatarUrl.startsWith('http');
+                // Get avatar from playersData (already stored by _getUserData)
+                final pData = playersData[uid] as Map<String, dynamic>?;
+                final String? avatarUrl = pData?['avatar'] as String?;
+                final bool hasValidUrl =
+                    avatarUrl != null && avatarUrl.startsWith('http');
 
-                    final currentUserId = ref
-                        .read(multiplayerControllerProvider.notifier)
-                        .userId;
-                    final isMe = uid == currentUserId;
+                final currentUserId = ref
+                    .read(multiplayerControllerProvider.notifier)
+                    .userId;
+                final isMe = uid == currentUserId;
 
-                    // Correct Bounds: Subtract Avatar Width (32) to keep inside screen
-                    final double avatarWidth = 32.0;
-                    final double pathWidth = constraints.maxWidth - avatarWidth;
+                // Correct Bounds: Subtract Avatar Width (32) to keep inside screen
+                final double avatarWidth = 32.0;
+                final double pathWidth = constraints.maxWidth - avatarWidth;
 
-                    // scaling
-                    final maxPossibleScore = totalQuestions * 10.0;
-                    final displayMax = maxPossibleScore > 0
-                        ? maxPossibleScore
-                        : 100.0;
-                    final percent = (score / displayMax).clamp(0.0, 1.0);
+                // scaling: Max score per question is 20 (10 base + 10 time bonus)
+                final maxPossibleScore = totalQuestions * 20.0;
+                final displayMax = maxPossibleScore > 0
+                    ? maxPossibleScore
+                    : 100.0;
+                final percent = (score / displayMax).clamp(0.0, 1.0);
 
-                    // Calculate Exact Position
-                    final double left = pathWidth * percent;
+                // Calculate Exact Position
+                final double left = pathWidth * percent;
 
-                    return AnimatedPositioned(
-                      duration: const Duration(milliseconds: 1000),
-                      curve: Curves.easeInOut,
-                      left: left,
-                      bottom:
-                          24, // Fixed vertical position for straight line (Center 40 - 16)
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
-                              border: Border.all(
-                                color: isMe ? Colors.yellow : Colors.white,
-                                width: 2,
-                              ),
-                            ),
-                            child: CircleAvatar(
-                              backgroundColor: Colors.grey[200],
-                              backgroundImage: hasValidUrl
-                                  ? NetworkImage(avatarUrl)
-                                  : null,
-                              child: !hasValidUrl
-                                  ? const Icon(
-                                      Icons.person,
-                                      size: 20,
-                                      color: Colors.grey,
-                                    )
-                                  : null,
-                            ),
+                return AnimatedPositioned(
+                  duration: const Duration(milliseconds: 1000),
+                  curve: Curves.easeInOut,
+                  left: left,
+                  bottom:
+                      24, // Fixed vertical position for straight line (Center 40 - 16)
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          border: Border.all(
+                            color: isMe ? Colors.yellow : Colors.white,
+                            width: 2,
                           ),
-                          const SizedBox(height: 4),
-                          // Small dot indicator on the line
-                          Container(
-                            width: 4,
-                            height: 4,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ],
+                        ),
+                        child: CircleAvatar(
+                          backgroundColor: Colors.grey[200],
+                          backgroundImage: hasValidUrl
+                              ? NetworkImage(avatarUrl)
+                              : null,
+                          child: !hasValidUrl
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 20,
+                                  color: Colors.grey,
+                                )
+                              : null,
+                        ),
                       ),
-                    );
-                  },
+                      const SizedBox(height: 4),
+                      // Small dot indicator on the line
+                      Container(
+                        width: 4,
+                        height: 4,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               }).toList(),
             ],

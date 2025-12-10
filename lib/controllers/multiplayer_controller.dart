@@ -133,38 +133,11 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
       );
     }
   }
-
-  Future<bool> _checkAndDeductLife() async {
-    final user = FirebaseAuth.instance.currentUser;
-    // Guests might not have lives enforced, or logic could be added.
-    // Assuming logged-in users or persisted guests have docs.
-    if (user == null) return true; // Or enforce for everyone?
-
-    try {
-      final doc = await _firestore.collection('users').doc(userId).get();
-      if (!doc.exists) return true; // Should ideally exist
-
-      final lives = doc.data()?['lives'] as int? ?? 0;
-      if (lives <= 0) {
-        state = state.copyWith(
-          isLoading: false,
-          error: "Yetersiz Can! Oynamak için can yenilenmesini bekle.",
-        );
-        return false;
-      }
-
-      // Deduct Life
-      await _firestoreService.updateLives(userId, -1);
-      return true;
-    } catch (e) {
-      debugPrint("Error checking lives: $e");
-      return true; // Fail safe? Or block?
-    }
-  }
+  // _checkAndDeductLife removed - life deduction now happens in startMultiplayerGame
 
   Future<void> createRoom() async {
     try {
-      if (!await _checkAndDeductLife()) return;
+      // Life deduction moved to startMultiplayerGame
 
       state = state.copyWith(isLoading: true);
 
@@ -284,13 +257,32 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
         return;
       }
 
+      // Check if all players have enough lives before starting
+      for (final playerId in players) {
+        final playerDoc = await _firestore
+            .collection('users')
+            .doc(playerId)
+            .get();
+        final playerLives = playerDoc.data()?['lives'] as int? ?? 0;
+        if (playerLives <= 0) {
+          state = MultiplayerState(
+            isLoading: false,
+            error: "Bir oyuncunun canı yok! Oyun başlatılamadı.",
+          );
+          return;
+        }
+      }
+
+      // Life deduction is handled by each client individually in View.initState
+      // to avoid Firestore permission issues (Host cannot write to Guest user doc).
+
       if (gameType == 'nameCity') {
         // Name City Logic
         debugPrint('DEBUG: Starting Name City Game...');
 
         // Generate 5 random letters
         // Generate 5 unique random letters
-        const alphabet = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
+        const alphabet = "ABCÇDEFGHİJKLMNOÖPRSŞTUÜVYZ";
         final random = Random();
         final Set<String> uniqueLetters = {};
         while (uniqueLetters.length < 5) {
@@ -388,9 +380,7 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
         return;
       }
 
-      // Deduct Life here, only if joining for the first time
-      debugPrint("DEBUG: Deducting life for joining room $roomCode");
-      if (!await _checkAndDeductLife()) return;
+      // Life deduction moved to startMultiplayerGame
 
       final userData = await _getUserData();
 
@@ -659,7 +649,6 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
       } else {
         final data = doc.data() as Map<String, dynamic>;
         final hostId = data['hostId'] as String?;
-        final players = List<String>.from(data['players'] ?? []);
 
         if (hostId == userId) {
           // Host leaving -> Delete Room
@@ -668,19 +657,11 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
         } else {
           // Guest leaving -> Remove from lists
           debugPrint("DEBUG: Guest leaving room $roomId");
-          final remainingPlayersCount = players.length - 1;
-
-          if (remainingPlayersCount <= 1) {
-            // If only 1 person left (who is the host), close the room effectively
-            // Or better: update status to 'abandoned' or just delete if that's the rule
-            // User requested: "If only 1 person remains, close room and return to home"
-            await docRef.delete(); // Crude but effective: everyone gets kicked
-          } else {
-            await docRef.update({
-              'players': FieldValue.arrayRemove([userId]),
-              'readyPlayers': FieldValue.arrayRemove([userId]),
-            });
-          }
+          // Just remove the guest. Don't close the room even if only host remains.
+          await docRef.update({
+            'players': FieldValue.arrayRemove([userId]),
+            'readyPlayers': FieldValue.arrayRemove([userId]),
+          });
         }
       }
     } catch (e) {
@@ -716,9 +697,8 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
         'DEBUG: Finalizing game for room $roomId. Score: $myScore, Win: $isWin',
       );
 
-      final firestoreService = FirestoreService();
-
-      await firestoreService.updateUserStats(
+      // Use injected service
+      await _firestoreService.updateUserStats(
         uid: userId,
         earnedScore: myScore,
         isWin: isWin,
@@ -758,36 +738,15 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
 
   Future<void> endNameCityRound(String roomId) async {
     try {
-      // Smart Wait: Give up to 10 seconds for all players to sync answers
-      // This handles network lag where clients might submit a few seconds late
-      DocumentSnapshot? doc;
-      Map<String, dynamic>? data;
-      int retries = 0;
+      // 1. Process Scores immediately (Assume caller -- Host -- verified everyone answered or time is up)
+      DocumentSnapshot? doc = await _firestore
+          .collection('rooms')
+          .doc(roomId)
+          .get();
+      if (!doc.exists) return;
+      Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
 
-      while (retries < 10) {
-        doc = await _firestore.collection('rooms').doc(roomId).get();
-        if (!doc.exists) return;
-        data = doc.data() as Map<String, dynamic>;
-
-        final players = List<String>.from(data['players'] ?? []);
-        final roundAnswersMap =
-            data['roundAnswers'] as Map<String, dynamic>? ?? {};
-
-        // If everyone answered, break early
-        if (roundAnswersMap.length >= players.length) {
-          debugPrint('DEBUG: All players answered. Proceeding to evaluation.');
-          break;
-        }
-
-        debugPrint(
-          'DEBUG: Waiting for answers... (${roundAnswersMap.length}/${players.length})',
-        );
-        await Future.delayed(const Duration(seconds: 1));
-        retries++;
-      }
-
-      // Proceed with whatever data we have after timeout
-      if (data == null) return; // Should not happen if loop ran once
+      if (data == null) return;
 
       final hostId = data['hostId'] as String?;
       if (hostId != userId) return;
@@ -800,7 +759,6 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
       final currentCategories = List<String>.from(
         data['currentCategories'] ?? [],
       );
-      final gameDuration = data['gameDuration'] as int? ?? 60;
 
       final roundAnswersRaw =
           data['roundAnswers'] as Map<String, dynamic>? ?? {};
@@ -812,6 +770,11 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
         }
       });
 
+      // Update status to 'analyzing' so all users see "AI is judging"
+      await _firestore.collection('rooms').doc(roomId).update({
+        'status': 'analyzing_nameCity',
+      });
+
       final aiService = AiJudgeService();
       final evaluationResults = await aiService.evaluateAnswersDetailed(
         letter: currentLetter,
@@ -821,15 +784,25 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
 
       debugPrint('DEBUG: AI detailed evaluation completed.');
 
+      final players = List<String>.from(data['players'] ?? []);
       final currentScores = Map<String, int>.from(data['playerScores'] ?? {});
       final lastRoundScores = <String, int>{};
       final lastRoundBreakdown = <String, Map<String, int>>{};
 
-      evaluationResults.forEach((pid, result) {
-        lastRoundScores[pid] = result.totalScore;
-        currentScores[pid] = (currentScores[pid] ?? 0) + result.totalScore;
-        lastRoundBreakdown[pid] = result.breakdown;
-      });
+      // Evaluate for ALL players, defaulting to 0 if AI missed them
+      for (final pid in players) {
+        final result = evaluationResults[pid];
+        if (result != null) {
+          lastRoundScores[pid] = result.totalScore;
+          currentScores[pid] = (currentScores[pid] ?? 0) + result.totalScore;
+          lastRoundBreakdown[pid] = result.breakdown;
+        } else {
+          // Fallback for empty AI response
+          lastRoundScores[pid] = 0;
+          currentScores[pid] = (currentScores[pid] ?? 0); // No change
+          lastRoundBreakdown[pid] = {};
+        }
+      }
 
       final currentRound = data['currentRound'] as int;
       final letters = data['letters'] as List;
@@ -841,24 +814,54 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
         });
         // Clients will handle finalization via stream
       } else {
-        final allCategories = List<String>.from(NameCityConstants.categories);
-        allCategories.shuffle();
-        final nextCategories = allCategories.take(5).toList();
-
+        // Intermission: Show Results
         await _firestore.collection('rooms').doc(roomId).update({
-          'currentRound': currentRound + 1,
-          'currentCategories': nextCategories,
-          'roundAnswers': {},
+          'status': 'name_city_round_results', // NEW STATUS
+          'roundAnswers':
+              {}, // Clear answers early or keep them? Keep for display? Let's keep them in roundAnswers until next start.
+          // actually we need answers to show what ppl wrote? yes.
+          // But we moved them to history?
+          // 'lastRoundBreakdown' has the scores.
+          // Valid answers are not stored in 'lastRoundBreakdown', only scores.
+          // For now let's just use scores for the board.
           'playerScores': currentScores,
           'lastRoundScores': lastRoundScores,
-          'lastRoundBreakdown': lastRoundBreakdown, // Store detailed breakdown
+          'lastRoundBreakdown': lastRoundBreakdown,
           'endTime': DateTime.now()
-              .add(Duration(seconds: gameDuration))
+              .add(const Duration(seconds: 8)) // 8s intermission
               .millisecondsSinceEpoch,
         });
       }
     } catch (e) {
       debugPrint("Error in endNameCityRound: $e");
+    }
+  }
+
+  Future<void> startNextNameCityRound(String roomId) async {
+    try {
+      final doc = await _firestore.collection('rooms').doc(roomId).get();
+      if (!doc.exists) return;
+      final data = doc.data() as Map<String, dynamic>;
+
+      final currentRound = data['currentRound'] as int;
+      final gameDuration = data['gameDuration'] as int? ?? 60;
+
+      final allCategories = List<String>.from(NameCityConstants.categories);
+      allCategories.shuffle();
+      final nextCategories = allCategories.take(5).toList();
+
+      await _firestore.collection('rooms').doc(roomId).update({
+        'status': 'playing_nameCity',
+        'currentRound': currentRound + 1,
+        'currentCategories': nextCategories,
+        'roundAnswers': {}, // Clear for new round
+        'endTime': DateTime.now()
+            .add(Duration(seconds: gameDuration))
+            .millisecondsSinceEpoch,
+      });
+      debugPrint('DEBUG: Started Round ${currentRound + 1}');
+    } catch (e) {
+      debugPrint("Error starting next round: $e");
     }
   }
 }

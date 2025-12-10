@@ -138,12 +138,7 @@ class _ScoreViewState extends ConsumerState<ScoreView> {
                     Expanded(
                       flex: 3,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (_) => const QuizView()),
-                          );
-                        },
+                        onPressed: _checkLivesAndReplay,
                         child: const Text('TEKRAR OYNA'),
                       ),
                     ),
@@ -180,5 +175,72 @@ class _ScoreViewState extends ConsumerState<ScoreView> {
         ],
       ),
     );
+  }
+
+  void _checkLivesAndReplay() {
+    final userAsync = ref.read(userProvider);
+    final user = userAsync.value;
+
+    if (user != null && user.lives > 0) {
+      ref.read(firestoreServiceProvider).updateLives(user.id, -1);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const QuizView()),
+      );
+    } else {
+      _showNoLivesDialog();
+    }
+  }
+
+  void _showNoLivesDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: const Text(
+          "Yetersiz Can!",
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          "Canınız kalmadı. Reklam izleyerek can kazanabilirsiniz.",
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Tamam", style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.pinkAccent,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _watchAdForLife(ref.read(userProvider).value?.id ?? "");
+            },
+            child: const Text("İzle (+3 ❤️)"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _watchAdForLife(String uid) {
+    if (uid.isEmpty) return;
+    ref
+        .read(adServiceProvider)
+        .showRewardedAdWaitIfNeeded(
+          context,
+          onUserEarnedReward: (reward) {
+            ref.read(firestoreServiceProvider).updateLives(uid, 3);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Tebrikler! +3 Can kazandın."),
+                backgroundColor: Colors.green,
+              ),
+            );
+          },
+        );
   }
 }

@@ -49,13 +49,12 @@ class FirestoreService {
     return _usersRef
         .doc(uid)
         .snapshots()
-        .asyncMap((snapshot) async {
+        .map((snapshot) {
           if (snapshot.exists && snapshot.data() != null) {
-            UserModel user = UserModel.fromMap(
+            return UserModel.fromMap(
               uid,
               snapshot.data() as Map<String, dynamic>,
             );
-            return await _checkLifeRegen(user);
           }
           return null;
         })
@@ -63,39 +62,6 @@ class FirestoreService {
           debugPrint('Firestore Error (getUserStream): $e');
           return null;
         });
-  }
-
-  Future<UserModel> _checkLifeRegen(UserModel user) async {
-    if (user.lives >= 5) return user;
-
-    final now = DateTime.now();
-    final lastRegen = user.lastLifeRegen ?? now;
-    final difference = now.difference(lastRegen).inMinutes;
-    const regenInterval = 15; // 15 minutes per life
-
-    if (difference >= regenInterval) {
-      final livesKeyValue = (difference / regenInterval).floor();
-      final livesToAdd = min(5 - user.lives, livesKeyValue);
-
-      if (livesToAdd > 0) {
-        final newLives = user.lives + livesToAdd;
-        // Update DB
-        // If we added lives, we should update lastLifeRegen to "now - remainder".
-        // But simply setting to 'now' is safer to prevent exploits/bugs, though slightly unfair if they waited 29 mins (gets 1 life + reset).
-        // A better approach: `lastRegen.add(Duration(minutes: livesToAdd * regenInterval))`
-        final newLastRegen = lastRegen.add(
-          Duration(minutes: livesToAdd * regenInterval),
-        );
-
-        await _usersRef.doc(user.id).update({
-          'lives': newLives,
-          'lastLifeRegen': Timestamp.fromDate(newLastRegen),
-        });
-
-        return user.copyWith(lives: newLives, lastLifeRegen: newLastRegen);
-      }
-    }
-    return user;
   }
 
   // Update User Stats (XP, Level, Coins, Score)
@@ -115,16 +81,10 @@ class FirestoreService {
 
         // Current values
         int currentXp = data['xp'] ?? 0;
-        // int currentLevel = data['level'] ?? 1; // Unused
         int currentCoins = data['coins'] ?? 0;
         int gamesPlayed = data['gamesPlayed'] ?? 0;
         int wins = data['wins'] ?? 0;
         int totalScore = data['totalScore'] ?? 0;
-
-        // Calculate new values
-        // Strategy: XP = Score. Level up every 1000 XP.
-        // Win bonus = 100 XP + 20 Coins
-        // Participation = Score as XP + 5 Coins
 
         int earnedXp = earnedScore;
         int earnedCoins = 5;
@@ -140,8 +100,6 @@ class FirestoreService {
         totalScore += earnedScore;
         gamesPlayed += 1;
 
-        // Level Calculation (Example: 1000 XP per level)
-        // Level 1: 0-999, Level 2: 1000-1999
         int newLevel = (currentXp / 1000).floor() + 1;
 
         transaction.update(userRef, {
@@ -224,25 +182,9 @@ class FirestoreService {
         // Calculate new lives
         int newLives = (currentLives + change).clamp(0, 5);
 
-        // Logic for Regen Timestamp:
-        // If dropping below 5 (and was 5), set Timestamp.now().
-        // If we heal to 5, set null.
-
-        DateTime? lastRegen = data['lastLifeRegen'] != null
-            ? (data['lastLifeRegen'] as Timestamp).toDate()
-            : null;
-
-        if (currentLives == 5 && newLives < 5) {
-          lastRegen = DateTime.now();
-        } else if (newLives == 5) {
-          lastRegen = null;
-        }
-
         transaction.update(userRef, {
           'lives': newLives,
-          'lastLifeRegen': lastRegen != null
-              ? Timestamp.fromDate(lastRegen)
-              : null,
+          // 'lastLifeRegen' removed as per request
         });
       });
     } catch (e) {

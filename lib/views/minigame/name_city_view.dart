@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../data/constants/name_city_constants.dart';
 import '../../services/ai_judge_service.dart';
 import '../../services/ad_service.dart';
+import '../../services/firestore_service.dart';
+import '../../controllers/auth_controller.dart';
 
 class NameCityView extends ConsumerStatefulWidget {
   const NameCityView({super.key});
@@ -43,6 +45,70 @@ class _NameCityViewState extends ConsumerState<NameCityView>
         }
       }
     });
+  }
+
+  void _checkLivesAndStart() {
+    final userAsync = ref.read(userProvider);
+    final user = userAsync.value;
+
+    if (user != null && user.lives > 0) {
+      ref.read(firestoreServiceProvider).updateLives(user.id, -1);
+      _startGame();
+    } else {
+      _showNoLivesDialog();
+    }
+  }
+
+  void _showNoLivesDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: const Text(
+          "Yetersiz Can!",
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          "Canınız kalmadı. Reklam izleyerek can kazanabilirsiniz.",
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Tamam", style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.pinkAccent,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _watchAdForLife(ref.read(userProvider).value?.id ?? "");
+            },
+            child: const Text("İzle (+3 ❤️)"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _watchAdForLife(String uid) {
+    if (uid.isEmpty) return;
+    ref
+        .read(adServiceProvider)
+        .showRewardedAdWaitIfNeeded(
+          context,
+          onUserEarnedReward: (reward) {
+            ref.read(firestoreServiceProvider).updateLives(uid, 3);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Tebrikler! +3 Can kazandın."),
+                backgroundColor: Colors.green,
+              ),
+            );
+          },
+        );
   }
 
   void _startGame() {
@@ -226,14 +292,8 @@ class _NameCityViewState extends ConsumerState<NameCityView>
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // Restart same setup? Or go back to setup?
-              // Let's restart with same settings effectively
-              setState(() {
-                _initializeRound();
-                _controller.reset();
-                _controller.duration = Duration(seconds: _selectedDuration);
-                _controller.forward();
-              });
+              // Restart game with life check
+              _checkLivesAndStart();
             },
             child: const Text("Tekrar Oyna"),
           ),
@@ -253,103 +313,105 @@ class _NameCityViewState extends ConsumerState<NameCityView>
       body: SafeArea(
         child: Column(
           children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(25),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: 20,
+            // Header (Hide if keyboard is open to save space)
+            if (MediaQuery.of(context).viewInsets.bottom == 0)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(25),
+                        shape: BoxShape.circle,
                       ),
-                      onPressed: () => Navigator.pop(context),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
                     ),
-                  ),
-                  Text(
-                    'Round 1/1',
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    Text(
+                      'Round 1/1',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 40), // Spacer
-                ],
+                    const SizedBox(width: 40), // Spacer
+                  ],
+                ),
               ),
-            ),
 
-            // Timer & Letter
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 180,
-                    height: 180,
-                    child: AnimatedBuilder(
-                      animation: _controller,
-                      builder: (context, child) {
-                        // Calculate remaining time for display
-                        final remaining =
-                            (_selectedDuration * (1 - _controller.value))
-                                .ceil();
+            // Timer & Letter (Hide if keyboard is open to save space)
+            if (MediaQuery.of(context).viewInsets.bottom == 0)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 180,
+                      height: 180,
+                      child: AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, child) {
+                          // Calculate remaining time for display
+                          final remaining =
+                              (_selectedDuration * (1 - _controller.value))
+                                  .ceil();
 
-                        return Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            CustomPaint(
-                              size: const Size(180, 180),
-                              painter: _TimerPainter(
-                                progress: _controller.value,
+                          return Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              CustomPaint(
+                                size: const Size(180, 180),
+                                painter: _TimerPainter(
+                                  progress: _controller.value,
+                                ),
                               ),
-                            ),
-                            // Fixed: Text inside AnimatedBuilder updates every tick
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _currentLetter,
-                                  style: GoogleFonts.spaceGrotesk(
-                                    fontSize: 72,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    shadows: [
-                                      const BoxShadow(
-                                        color: Color(0xFF00F6FF),
-                                        blurRadius: 20,
-                                      ),
-                                    ],
+                              // Fixed: Text inside AnimatedBuilder updates every tick
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    _currentLetter,
+                                    style: GoogleFonts.spaceGrotesk(
+                                      fontSize: 72,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      shadows: [
+                                        const BoxShadow(
+                                          color: Color(0xFF00F6FF),
+                                          blurRadius: 20,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  '$remaining',
-                                  style: const TextStyle(
-                                    color: Color(0xFF00F6FF),
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
+                                  Text(
+                                    '$remaining',
+                                    style: const TextStyle(
+                                      color: Color(0xFF00F6FF),
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
-                      },
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
 
             // Inputs
             Expanded(
@@ -496,7 +558,7 @@ class _NameCityViewState extends ConsumerState<NameCityView>
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: _startGame,
+                  onPressed: _checkLivesAndStart,
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.zero,
                     shape: RoundedRectangleBorder(

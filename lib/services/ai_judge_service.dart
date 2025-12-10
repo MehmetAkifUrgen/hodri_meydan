@@ -59,13 +59,13 @@ class AiJudgeService {
         "   - 0 points: Clearly incorrect or wrong starting letter.",
       );
       buffer.writeln(
-        "   - FLEXIBILITY: Use your intelligence. If an answer is 'conceptually' correct or a common association, accept it.",
+        "   - TURKISH ALPHABET RULES: Be flexible with I/İ. If target is 'I', accept 'İ' if it makes sense in context, and vice versa. Treat case insensitively.",
       );
       buffer.writeln(
-        "   - Example: Category 'Living Room Object', Letter 'T'. Answer 'TV' (English) -> Accept as 10 (Common usage).",
+        "   - STRICTNESS: Prioritize COMMON logic. 10 points is for obvious, undeniable answers. If an answer is technically possible but rare or forced (e.g. 'Elephant' in 'City' just because of a zoo), give 0 or 5 points. Do NOT be too generous.",
       );
       buffer.writeln(
-        "   - Example: Category 'City', Letter 'I'. Answer 'Istanbul' (Starts with I or İ) -> Accept.",
+        "   - Example: Category 'Beach', Answer 'Sieve' (Elek). Unless it's explicitly a sand sieve toy, this is a weak link. Prefer 5 points or 0 points over 10.",
       );
       buffer.writeln(
         "3. Comparison/Context: Judge each answer on its own merit, but be consistent.",

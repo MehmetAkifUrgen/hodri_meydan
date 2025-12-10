@@ -17,45 +17,11 @@ import '../minigame/name_city_view.dart';
 import '../multiplayer/lobby_view.dart';
 import '../categories/category_selection_view.dart';
 import '../../controllers/auth_controller.dart';
-import '../../data/models/user_model.dart';
+
 import '../settings/settings_view.dart';
 
 class HomeView extends ConsumerWidget {
   const HomeView({super.key});
-
-  void _showNoLivesDialog(BuildContext context, WidgetRef ref, String uid) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        title: const Text(
-          "Canın Kalmadı!",
-          style: TextStyle(color: Colors.white),
-        ),
-        content: const Text(
-          "Oyun oynamak için cana ihtiyacın var. Reklam izleyerek +3 Can kazanabilirsin.",
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("İptal", style: TextStyle(color: Colors.white54)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.pinkAccent,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.pop(ctx);
-              _watchAdForLife(context, ref, uid);
-            },
-            child: const Text("İzle (+3 ❤️)"),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _watchAdForLife(BuildContext context, WidgetRef ref, String uid) {
     ref
@@ -72,28 +38,6 @@ class HomeView extends ConsumerWidget {
             );
           },
         );
-  }
-
-  void _checkLivesAndNavigate(
-    BuildContext context,
-    WidgetRef ref,
-    UserModel? user,
-    Widget targetPage,
-  ) async {
-    if (user == null) return;
-
-    if (user.lives > 0) {
-      // Deduct life immediately
-      // Optimistic UI? Firestore prevents playing if < 0 anyway? No logic in FS.
-      // We deduct locally? No, call service.
-      await ref.read(firestoreServiceProvider).updateLives(user.id, -1);
-
-      if (context.mounted) {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => targetPage));
-      }
-    } else {
-      _showNoLivesDialog(context, ref, user.id);
-    }
   }
 
   @override
@@ -250,9 +194,9 @@ class HomeView extends ConsumerWidget {
                                               const SizedBox(width: 4),
                                               // Tiny plus icon
                                               const Icon(
-                                                Icons.add_circle,
+                                                Icons.ondemand_video,
                                                 color: Colors.greenAccent,
-                                                size: 14,
+                                                size: 16,
                                               ),
                                             ],
                                           ],
@@ -329,11 +273,12 @@ class HomeView extends ConsumerWidget {
                                   title: 'Tek Kişilik',
                                   subtitle: 'Kendinle yarış, rekorları kır',
                                   icon: Icons.person_outline,
-                                  onTap: () => _checkLivesAndNavigate(
+                                  onTap: () => Navigator.push(
                                     context,
-                                    ref,
-                                    user,
-                                    const CategorySelectionView(),
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const CategorySelectionView(),
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -341,23 +286,25 @@ class HomeView extends ConsumerWidget {
                                   title: 'Çok Oyunculu',
                                   subtitle: 'Arkadaşlarına meydan oku',
                                   icon: Icons.people_outline,
-                                  onTap: () => _checkLivesAndNavigate(
-                                    context,
-                                    ref,
-                                    user,
-                                    const LobbyView(),
-                                  ),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const LobbyView(),
+                                      ),
+                                    );
+                                  },
                                 ),
                                 const SizedBox(height: 16),
                                 _GlassMenuCard(
                                   title: 'Modern İsim Şehir',
                                   subtitle: 'Klasik oyunlar, modern dokunuş',
                                   icon: Icons.grid_view,
-                                  onTap: () => _checkLivesAndNavigate(
+                                  onTap: () => Navigator.push(
                                     context,
-                                    ref,
-                                    user,
-                                    const NameCityView(),
+                                    MaterialPageRoute(
+                                      builder: (_) => const NameCityView(),
+                                    ),
                                   ),
                                 ),
                               ],

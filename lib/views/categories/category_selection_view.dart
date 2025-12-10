@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../data/services/api_service.dart';
 import '../game/quiz_view.dart';
+import '../../controllers/auth_controller.dart';
+import '../../services/firestore_service.dart';
+import '../../services/ad_service.dart';
 
-class CategorySelectionView extends StatefulWidget {
+class CategorySelectionView extends ConsumerStatefulWidget {
   const CategorySelectionView({super.key});
 
   @override
-  State<CategorySelectionView> createState() => _CategorySelectionViewState();
+  ConsumerState<CategorySelectionView> createState() =>
+      _CategorySelectionViewState();
 }
 
-class _CategorySelectionViewState extends State<CategorySelectionView> {
+class _CategorySelectionViewState extends ConsumerState<CategorySelectionView> {
   final ApiService _apiService = ApiService();
   late Future<List<String>> _categoriesFuture;
 
@@ -19,6 +24,76 @@ class _CategorySelectionViewState extends State<CategorySelectionView> {
   void initState() {
     super.initState();
     _categoriesFuture = _apiService.fetchCategories();
+  }
+
+  void _checkLivesAndStart(String category) {
+    final userAsync = ref.read(userProvider);
+    final user = userAsync.value;
+
+    if (user == null) return;
+
+    if (user.lives > 0) {
+      // Deduct life
+      ref.read(firestoreServiceProvider).updateLives(user.id, -1);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => QuizView(category: category)),
+      );
+    } else {
+      _showNoLivesDialog(context, user.id);
+    }
+  }
+
+  void _showNoLivesDialog(BuildContext context, String uid) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: const Text(
+          "Yetersiz Can!",
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          "Canınız kalmadı. Reklam izleyerek can kazanabilirsiniz.",
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Tamam", style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.pinkAccent,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _watchAdForLife(context, uid);
+            },
+            child: const Text("İzle (+3 ❤️)"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _watchAdForLife(BuildContext context, String uid) {
+    ref
+        .read(adServiceProvider)
+        .showRewardedAdWaitIfNeeded(
+          context,
+          onUserEarnedReward: (reward) {
+            ref.read(firestoreServiceProvider).updateLives(uid, 3);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Tebrikler! +3 Can kazandın."),
+                backgroundColor: Colors.green,
+              ),
+            );
+          },
+        );
   }
 
   @override
@@ -117,12 +192,7 @@ class _CategorySelectionViewState extends State<CategorySelectionView> {
     }
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => QuizView(category: category)),
-        );
-      },
+      onTap: () => _checkLivesAndStart(category),
       child:
           Container(
             decoration: BoxDecoration(

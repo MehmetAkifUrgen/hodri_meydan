@@ -37,8 +37,7 @@ class _MultiplayerResultsViewState
     final controller = ref.read(multiplayerControllerProvider.notifier);
     final myId = controller.userId;
 
-    // Show Ad
-    ref.read(adServiceProvider).showInterstitialAd();
+    // Ad moved to "Lobiye Dön" button
 
     // Sort scores
     final sortedEntries = widget.finalScores.entries.toList()
@@ -211,9 +210,16 @@ class _MultiplayerResultsViewState
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () async {
+                          // Show ad before leaving
+                          ref.read(adServiceProvider).showInterstitialAd();
+
                           await controller
                               .leaveRoom(); // Clear state and leave room
-                          if (context.mounted) Navigator.pop(context);
+                          if (context.mounted) {
+                            Navigator.of(
+                              context,
+                            ).popUntil((route) => route.isFirst);
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white10,
