@@ -46,9 +46,13 @@ class _MultiplayerResultsViewState
 
     final myScore = widget.finalScores[myId] as int? ?? 0;
 
-    // Determine winner (first in sorted list)
-    final winnerId = sortedEntries.isNotEmpty ? sortedEntries.first.key : null;
-    final isWin = winnerId == myId;
+    // Determine winners (could be multiple if tie)
+    final maxScore = sortedEntries.isNotEmpty
+        ? sortedEntries.first.value as int
+        : -1;
+    final winners = sortedEntries.where((e) => e.value == maxScore).toList();
+
+    final isWin = winners.any((e) => e.key == myId);
 
     // Trigger Finalize
     await controller.finalizeGame(widget.roomId, myScore, isWin);
@@ -62,6 +66,12 @@ class _MultiplayerResultsViewState
     // Sort scores
     final sortedEntries = widget.finalScores.entries.toList()
       ..sort((a, b) => (b.value as int).compareTo(a.value as int));
+
+    final maxScore = sortedEntries.isNotEmpty
+        ? sortedEntries.first.value as int
+        : -1;
+    final winners = sortedEntries.where((e) => e.value == maxScore).toList();
+    final isTie = winners.length > 1;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0B1121),
@@ -93,7 +103,7 @@ class _MultiplayerResultsViewState
 
               const SizedBox(height: 40),
 
-              // Winner Podium (Top 1)
+              // Winner Podium (Top 1 or Tie)
               if (sortedEntries.isNotEmpty)
                 StreamBuilder<DocumentSnapshot>(
                   stream: controller.roomStream(widget.roomId),
@@ -104,8 +114,9 @@ class _MultiplayerResultsViewState
                         roomData?['playersData'] as Map<String, dynamic>? ?? {};
                     return _buildWinnerCard(
                       context,
-                      sortedEntries.first,
+                      winners,
                       playersData,
+                      isTie,
                     );
                   },
                 ),
@@ -227,9 +238,50 @@ class _MultiplayerResultsViewState
 
   Widget _buildWinnerCard(
     BuildContext context,
-    MapEntry<String, dynamic> winner,
+    List<MapEntry<String, dynamic>> winners,
     Map<String, dynamic> playersData,
+    bool isTie,
   ) {
+    if (isTie) {
+      return Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: winners.map((winner) {
+              final pid = winner.key;
+              final pData = playersData[pid] as Map<String, dynamic>?;
+              final avatar = pData?['avatar'] as String?;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: CircleAvatar(
+                  radius: 30,
+                  backgroundImage: avatar != null ? NetworkImage(avatar) : null,
+                  child: avatar == null ? const Icon(Icons.person) : null,
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'BERABERE!',
+            style: GoogleFonts.spaceGrotesk(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${winners.first.value} Puan',
+            style: const TextStyle(color: Colors.white54),
+          ),
+        ],
+      );
+    }
+
+    // Single Winner
+    final winner = winners.first;
     final pid = winner.key;
     final pData = playersData[pid] as Map<String, dynamic>?;
     final name = pData?['username'] as String? ?? 'Oyuncu';

@@ -88,9 +88,10 @@ class MultiplayerState {
 class MultiplayerController extends StateNotifier<MultiplayerState> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final ApiService _apiService = ApiService();
+  final FirestoreService _firestoreService;
   final String _tempGuestId = const Uuid().v4(); // Fallback for guests
 
-  MultiplayerController() : super(MultiplayerState()) {
+  MultiplayerController(this._firestoreService) : super(MultiplayerState()) {
     _loadCategories();
   }
 
@@ -133,8 +134,38 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
     }
   }
 
+  Future<bool> _checkAndDeductLife() async {
+    final user = FirebaseAuth.instance.currentUser;
+    // Guests might not have lives enforced, or logic could be added.
+    // Assuming logged-in users or persisted guests have docs.
+    if (user == null) return true; // Or enforce for everyone?
+
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+      if (!doc.exists) return true; // Should ideally exist
+
+      final lives = doc.data()?['lives'] as int? ?? 0;
+      if (lives <= 0) {
+        state = state.copyWith(
+          isLoading: false,
+          error: "Yetersiz Can! Oynamak için can yenilenmesini bekle.",
+        );
+        return false;
+      }
+
+      // Deduct Life
+      await _firestoreService.updateLives(userId, -1);
+      return true;
+    } catch (e) {
+      debugPrint("Error checking lives: $e");
+      return true; // Fail safe? Or block?
+    }
+  }
+
   Future<void> createRoom() async {
     try {
+      if (!await _checkAndDeductLife()) return;
+
       state = state.copyWith(isLoading: true);
 
       // Generate 6 digit room code
@@ -258,12 +289,14 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
         debugPrint('DEBUG: Starting Name City Game...');
 
         // Generate 5 random letters
+        // Generate 5 unique random letters
         const alphabet = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
         final random = Random();
-        final List<String> letters = [];
-        for (int i = 0; i < 5; i++) {
-          letters.add(alphabet[random.nextInt(alphabet.length)]);
+        final Set<String> uniqueLetters = {};
+        while (uniqueLetters.length < 5) {
+          uniqueLetters.add(alphabet[random.nextInt(alphabet.length)]);
         }
+        final List<String> letters = uniqueLetters.toList();
 
         // Select 5 random categories for the first round
         final allCategories = List<String>.from(NameCityConstants.categories);
@@ -298,6 +331,7 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
                 'correct_answer': q.correctAnswerIndex,
                 'category': q.category,
                 'image_url': q.imageUrl,
+                'flag_svg': q.flagSvg,
               },
             )
             .toList();
@@ -323,6 +357,8 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
 
   Future<void> joinRoom(String roomCode) async {
     try {
+      // Logic moved below: Only deduct if allowed to join
+
       state = MultiplayerState(isLoading: true);
 
       DocumentSnapshot doc = await _firestore
@@ -351,6 +387,10 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
         state = state.copyWith(isLoading: false, currentRoomId: roomCode);
         return;
       }
+
+      // Deduct Life here, only if joining for the first time
+      debugPrint("DEBUG: Deducting life for joining room $roomCode");
+      if (!await _checkAndDeductLife()) return;
 
       final userData = await _getUserData();
 
@@ -463,6 +503,103 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
     }
   }
 
+  Future<void> processRoundEnd(String roomId) async {
+    try {
+      final roomRef = _firestore.collection('rooms').doc(roomId);
+
+      // Run transaction to ensure atomic score updates
+      // Returns true if we successfully updated/advanced the round
+      // Returns false if round was already processed
+      final bool updated = await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(roomRef);
+        if (!snapshot.exists) return false;
+
+        final data = snapshot.data() as Map<String, dynamic>;
+
+        // Debounce: If nextQuestionTime is already set, someone else processed this round.
+        if (data['nextQuestionTime'] != null) {
+          return false;
+        }
+
+        final answers = Map<String, dynamic>.from(data['answers'] ?? {});
+        final currentScores = Map<String, int>.from(data['scores'] ?? {});
+
+        // Calculate new scores
+        final Map<String, int> scoreUpdates = {};
+        answers.forEach((uid, answerData) {
+          final points = (answerData['points'] as int?) ?? 0;
+          if (points > 0) {
+            scoreUpdates[uid] = (currentScores[uid] ?? 0) + points;
+          }
+        });
+
+        // Prepare updates
+        // Note: FieldValue.increment is harder inside a complex map update if we want to replace the whole map
+        // or we need specific key updates.
+        // Better: We calculated absolute new scores, so we can just set them.
+        // OR: We can use nested updates if we want concurrent safety, but here the Host is the authority.
+        // Let's use the calculated new scores to ensure consistency.
+
+        // Check if this was the last question
+        final currentQIndex = data['currentQuestionIndex'] as int;
+        final questions = data['questions'] as List<dynamic>;
+        final isLastQuestion = currentQIndex >= questions.length - 1;
+
+        Map<String, dynamic> updates = {};
+
+        if (isLastQuestion) {
+          updates['status'] = 'finished';
+        } else {
+          updates['nextQuestionTime'] = DateTime.now()
+              .add(const Duration(seconds: 3))
+              .millisecondsSinceEpoch;
+        }
+
+        // Merge score updates
+        scoreUpdates.forEach((uid, newScore) {
+          updates['scores.$uid'] = newScore;
+        });
+
+        transaction.update(roomRef, updates);
+        return true;
+      });
+
+      if (!updated) {
+        debugPrint(
+          "DEBUG: Round already processed or invalid. Skipping schedule.",
+        );
+        return;
+      }
+
+      // If NOT last question, schedule next question
+      // If it IS last question, the View will react to 'status' == 'finished' stream update
+      final doc = await roomRef.get();
+      if (!doc.exists) return; // Room deleted?
+
+      final currentIdx = doc.data()?['currentQuestionIndex'] as int;
+      final totalQs = (doc.data()?['questions'] as List).length;
+      final status = doc.data()?['status'] as String?;
+
+      debugPrint(
+        "DEBUG: Round End - Current: $currentIdx, Total: $totalQs, Status: $status",
+      );
+
+      // Strict Check: Only schedule next if status is NOT finished and we have questions left
+      if (status != 'finished' && currentIdx < totalQs - 1) {
+        debugPrint("DEBUG: Scheduling next question in 3s...");
+        Future.delayed(const Duration(seconds: 3), () {
+          nextQuestion(roomId);
+        });
+      } else {
+        debugPrint(
+          "DEBUG: Game Finished (or already at end). No next question scheduled.",
+        );
+      }
+    } catch (e) {
+      debugPrint("Firestore Error (processRoundEnd): $e");
+    }
+  }
+
   Future<void> submitAnswer(
     String roomId,
     int questionIndex,
@@ -493,35 +630,17 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
         points = 10 + (timeRemaining ~/ 2);
       }
 
-      // 3. Update Player Score in Firestore
-      // Using a 'scores' map: { 'userId': score }
+      // 3. Store Answer and Potential Points (DO NOT UPDATE SCORE YET)
       await roomRef.update({
-        'scores.$userId': FieldValue.increment(points),
         'answers.$userId': {
           'questionIndex': questionIndex,
           'answer': answerIndex,
           'correct': answerIndex == correctAnswer,
+          'points': points, // Store points here for later processing
         },
       });
 
-      // 4. Check if everyone answered (Auto-Advance)
-      // We need to fetch the updated doc to check total answers count
-      final updatedDoc = await roomRef.get();
-      final updatedData = updatedDoc.data() as Map<String, dynamic>;
-      final updatedAnswers =
-          updatedData['answers'] as Map<String, dynamic>? ?? {};
-      final players = List<String>.from(updatedData['players'] ?? []);
-      final hostId = updatedData['hostId'] as String?;
-
-      if (updatedAnswers.length >= players.length) {
-        // Everyone answered
-        if (hostId == userId) {
-          // Only Host triggers next question
-          Future.delayed(const Duration(seconds: 2), () {
-            nextQuestion(roomId);
-          });
-        }
-      }
+      // Logic moved to View: Host monitors stream for answers.length == players.length
     } catch (e) {
       debugPrint("Firestore Error (submitAnswer): $e");
     }
@@ -549,22 +668,24 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
         } else {
           // Guest leaving -> Remove from lists
           debugPrint("DEBUG: Guest leaving room $roomId");
-          await docRef.update({
-            'players': FieldValue.arrayRemove([userId]),
-            'readyPlayers': FieldValue.arrayRemove([userId]),
-          });
+          final remainingPlayersCount = players.length - 1;
 
-          // If room becomes empty (shouldn't happen if host logic works, but safe fallback)
-          if (players.length <= 1) {
-            await docRef.delete();
+          if (remainingPlayersCount <= 1) {
+            // If only 1 person left (who is the host), close the room effectively
+            // Or better: update status to 'abandoned' or just delete if that's the rule
+            // User requested: "If only 1 person remains, close room and return to home"
+            await docRef.delete(); // Crude but effective: everyone gets kicked
+          } else {
+            await docRef.update({
+              'players': FieldValue.arrayRemove([userId]),
+              'readyPlayers': FieldValue.arrayRemove([userId]),
+            });
           }
         }
       }
     } catch (e) {
       debugPrint("Firestore Error (leaveRoom): $e");
-      // Fallthrough to clear state
     } finally {
-      // ALWAYS clear local state to unblock UI
       state = state.copyWith(clearCurrentRoomId: true);
     }
   }
@@ -572,7 +693,7 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
   void onRoomClosed() {
     state = state.copyWith(
       clearCurrentRoomId: true,
-      statusMessage: "Oda kapatıldı (Host ayrıldı).",
+      statusMessage: "Oda kapatıldı (Yetersiz oyuncu veya Host ayrıldı).",
     );
   }
 
@@ -581,6 +702,7 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
       await _firestore.collection('rooms').doc(roomId).update({
         'currentQuestionIndex': FieldValue.increment(1),
         'answers': {}, // Reset answers for next round
+        'nextQuestionTime': FieldValue.delete(), // Clear countdown
         'startTime': DateTime.now().millisecondsSinceEpoch, // Reset timer
       });
     } catch (e) {
@@ -636,10 +758,37 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
 
   Future<void> endNameCityRound(String roomId) async {
     try {
-      final doc = await _firestore.collection('rooms').doc(roomId).get();
-      if (!doc.exists) return;
+      // Smart Wait: Give up to 10 seconds for all players to sync answers
+      // This handles network lag where clients might submit a few seconds late
+      DocumentSnapshot? doc;
+      Map<String, dynamic>? data;
+      int retries = 0;
 
-      final data = doc.data() as Map<String, dynamic>;
+      while (retries < 10) {
+        doc = await _firestore.collection('rooms').doc(roomId).get();
+        if (!doc.exists) return;
+        data = doc.data() as Map<String, dynamic>;
+
+        final players = List<String>.from(data['players'] ?? []);
+        final roundAnswersMap =
+            data['roundAnswers'] as Map<String, dynamic>? ?? {};
+
+        // If everyone answered, break early
+        if (roundAnswersMap.length >= players.length) {
+          debugPrint('DEBUG: All players answered. Proceeding to evaluation.');
+          break;
+        }
+
+        debugPrint(
+          'DEBUG: Waiting for answers... (${roundAnswersMap.length}/${players.length})',
+        );
+        await Future.delayed(const Duration(seconds: 1));
+        retries++;
+      }
+
+      // Proceed with whatever data we have after timeout
+      if (data == null) return; // Should not happen if loop ran once
+
       final hostId = data['hostId'] as String?;
       if (hostId != userId) return;
 
@@ -664,17 +813,22 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
       });
 
       final aiService = AiJudgeService();
-      final scores = await aiService.evaluateAnswers(
+      final evaluationResults = await aiService.evaluateAnswersDetailed(
         letter: currentLetter,
         categories: currentCategories,
         answers: roundAnswers,
       );
 
-      debugPrint('DEBUG: AI Scores: $scores');
+      debugPrint('DEBUG: AI detailed evaluation completed.');
 
       final currentScores = Map<String, int>.from(data['playerScores'] ?? {});
-      scores.forEach((pid, score) {
-        currentScores[pid] = (currentScores[pid] ?? 0) + score;
+      final lastRoundScores = <String, int>{};
+      final lastRoundBreakdown = <String, Map<String, int>>{};
+
+      evaluationResults.forEach((pid, result) {
+        lastRoundScores[pid] = result.totalScore;
+        currentScores[pid] = (currentScores[pid] ?? 0) + result.totalScore;
+        lastRoundBreakdown[pid] = result.breakdown;
       });
 
       final currentRound = data['currentRound'] as int;
@@ -696,7 +850,8 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
           'currentCategories': nextCategories,
           'roundAnswers': {},
           'playerScores': currentScores,
-          'lastRoundScores': scores, // Store round-specific scores
+          'lastRoundScores': lastRoundScores,
+          'lastRoundBreakdown': lastRoundBreakdown, // Store detailed breakdown
           'endTime': DateTime.now()
               .add(Duration(seconds: gameDuration))
               .millisecondsSinceEpoch,
@@ -710,5 +865,6 @@ class MultiplayerController extends StateNotifier<MultiplayerState> {
 
 final multiplayerControllerProvider =
     StateNotifierProvider<MultiplayerController, MultiplayerState>((ref) {
-      return MultiplayerController();
+      final firestoreService = ref.read(firestoreServiceProvider);
+      return MultiplayerController(firestoreService);
     });

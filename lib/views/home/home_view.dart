@@ -161,38 +161,44 @@ class HomeView extends ConsumerWidget {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 // User Info Row
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 20,
-                                      backgroundImage: NetworkImage(
-                                        user?.profileImageUrl ??
-                                            'https://ui-avatars.com/api/?name=${user?.username ?? "Misafir"}&background=random',
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 20,
+                                        backgroundImage: NetworkImage(
+                                          user?.profileImageUrl ??
+                                              'https://ui-avatars.com/api/?name=${user?.username ?? "Misafir"}&background=random',
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Merhaba,",
-                                          style: GoogleFonts.spaceGrotesk(
-                                            color: Colors.white70,
-                                            fontSize: 14,
-                                          ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "Merhaba,",
+                                              style: GoogleFonts.spaceGrotesk(
+                                                color: Colors.white70,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                            Text(
+                                              user?.username ?? "Misafir",
+                                              style: GoogleFonts.spaceGrotesk(
+                                                color: Colors.white,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
+                                            ),
+                                          ],
                                         ),
-                                        Text(
-                                          user?.username ?? "Misafir",
-                                          style: GoogleFonts.spaceGrotesk(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
 
                                 // Stats Row (Dynamite + Lives + Settings)

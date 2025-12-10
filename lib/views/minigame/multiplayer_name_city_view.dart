@@ -195,19 +195,47 @@ class _MultiplayerNameCityViewState
             final status = data['status'] as String? ?? 'playing_nameCity';
 
             // Check Game Over
+            // Check Game Over
             if (status == 'finished') {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (context) => MultiplayerResultsView(
-                      roomId: widget.roomId,
-                      finalScores: Map<String, dynamic>.from(
-                        data['playerScores'] ?? {},
-                      ),
-                      totalQuestions: widget.letters.length,
-                    ),
-                  ),
+                // Prevent multiple triggers
+                if (_submitted && !Navigator.canPop(context)) {
+                  // Already processing finish or summary open
+                }
+
+                // Show Final Round Summary if available
+                final lastRoundScores = Map<String, dynamic>.from(
+                  data['lastRoundScores'] ?? {},
                 );
+                if (lastRoundScores.isNotEmpty &&
+                    _currentRound == widget.letters.length) {
+                  final playersData =
+                      data['playersData'] as Map<String, dynamic>? ?? {};
+                  _showRoundSummary(
+                    context,
+                    widget.letters.length, // Final Round Number
+                    lastRoundScores,
+                    playersData,
+                    Map<String, dynamic>.from(data['lastRoundBreakdown'] ?? {}),
+                  );
+                }
+
+                // Navigate after delay to let user see summary
+                Future.delayed(const Duration(seconds: 5), () {
+                  if (context.mounted) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => MultiplayerResultsView(
+                          roomId: widget.roomId,
+                          finalScores: Map<String, dynamic>.from(
+                            data['playerScores'] ?? {},
+                          ),
+                          totalQuestions: widget.letters.length,
+                        ),
+                      ),
+                    );
+                  }
+                });
               });
               return const Center(child: CircularProgressIndicator());
             }
@@ -227,6 +255,7 @@ class _MultiplayerNameCityViewState
                     serverRound - 1,
                     lastRoundScores,
                     playersData,
+                    Map<String, dynamic>.from(data['lastRoundBreakdown'] ?? {}),
                   );
                 });
               }
@@ -379,6 +408,29 @@ class _MultiplayerNameCityViewState
                       ),
                     ),
                   ),
+                if (_submitted)
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(color: Color(0xFF00F6FF)),
+                          SizedBox(width: 16),
+                          Text(
+                            "Sonuçlar Hesaplanıyor...\nAI Değerlendiriyor...",
+                            style: TextStyle(color: Colors.white),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
           );
@@ -436,14 +488,75 @@ class _MultiplayerNameCityViewState
     int roundNumber,
     Map<String, dynamic> scores,
     Map<String, dynamic> playersData,
+    Map<String, dynamic> breakdown,
   ) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        Future.delayed(const Duration(seconds: 4), () {
+        Future.delayed(const Duration(seconds: 6), () {
           if (context.mounted) Navigator.of(context).pop();
         });
+
+        // Helper to find category winners
+        List<Widget> buildCategoryBreakdown() {
+          if (breakdown.isEmpty) return [];
+
+          final categoryWinners = <String, String>{}; // Category -> WinnerName
+          final firstPlayer = breakdown.keys.first;
+          final categories = (breakdown[firstPlayer] as Map).keys.toList();
+
+          for (var cat in categories) {
+            String winner = "-";
+            int maxScore = -1;
+
+            breakdown.forEach((pid, pBreakdown) {
+              final pMap = Map<String, int>.from(pBreakdown as Map);
+              final score = pMap[cat] ?? 0;
+              if (score > maxScore && score > 0) {
+                maxScore = score;
+                final pData = playersData[pid] as Map<String, dynamic>?;
+                winner = pData?['username'] ?? "Oyuncu ${pid.substring(0, 4)}";
+              }
+            });
+
+            if (maxScore > 0) {
+              categoryWinners[cat as String] = "$winner ($maxScore)";
+            }
+          }
+
+          if (categoryWinners.isEmpty)
+            return [
+              const Text(
+                "Henüz veri yok",
+                style: TextStyle(color: Colors.white54),
+              ),
+            ];
+
+          return categoryWinners.entries.map((e) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2.0),
+              child: Row(
+                children: [
+                  Text(
+                    "${e.key}: ",
+                    style: const TextStyle(
+                      color: Color(0xFF00F6FF),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      e.value,
+                      style: const TextStyle(color: Colors.white),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList();
+        }
 
         return AlertDialog(
           backgroundColor: const Color(0xFF1E293B),
@@ -455,34 +568,51 @@ class _MultiplayerNameCityViewState
               fontWeight: FontWeight.bold,
             ),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: scores.entries.map((e) {
-              final pid = e.key;
-              final pData = playersData[pid] as Map<String, dynamic>?;
-              final name =
-                  pData?['username'] as String? ??
-                  "Oyuncu ${pid.substring(0, 4)}";
-              final avatar = pData?['avatar'] as String?;
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...scores.entries.map((e) {
+                  final pid = e.key;
+                  final pData = playersData[pid] as Map<String, dynamic>?;
+                  final name =
+                      pData?['username'] as String? ??
+                      "Oyuncu ${pid.substring(0, 4)}";
+                  final avatar = pData?['avatar'] as String?;
 
-              return ListTile(
-                leading: avatar != null
-                    ? CircleAvatar(backgroundImage: NetworkImage(avatar))
-                    : const Icon(Icons.person, color: Colors.white70),
-                title: Text(
-                  name,
-                  style: const TextStyle(color: Colors.white70),
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: avatar != null
+                        ? CircleAvatar(
+                            backgroundImage: NetworkImage(avatar),
+                            radius: 16,
+                          )
+                        : const Icon(Icons.person, color: Colors.white70),
+                    title: Text(
+                      name,
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    trailing: Text(
+                      "+${e.value} Puan",
+                      style: const TextStyle(
+                        color: Colors.amber,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  );
+                }),
+                const Divider(color: Colors.white24),
+                const Text(
+                  "Kategori Liderleri:",
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
-                trailing: Text(
-                  "+${e.value} Puan",
-                  style: const TextStyle(
-                    color: Colors.amber,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
-              );
-            }).toList(),
+                const SizedBox(height: 4),
+                ...buildCategoryBreakdown(),
+              ],
+            ),
           ),
         );
       },

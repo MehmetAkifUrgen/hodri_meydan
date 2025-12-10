@@ -482,11 +482,11 @@ class _NameCityViewState extends ConsumerState<NameCityView>
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildDurationOption(60),
-                  const SizedBox(width: 16),
-                  _buildDurationOption(90),
-                  const SizedBox(width: 16),
-                  _buildDurationOption(120),
+                  Expanded(child: _buildDurationOption(60)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildDurationOption(90)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildDurationOption(120)),
                 ],
               ),
 
@@ -539,7 +539,8 @@ class _NameCityViewState extends ConsumerState<NameCityView>
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
         decoration: BoxDecoration(
           color: isSelected
               ? const Color(0xFF00F6FF).withAlpha(50)

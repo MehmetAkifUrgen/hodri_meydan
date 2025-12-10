@@ -30,6 +30,7 @@ dependencies:
   flutter_svg: ^2.2.3
   firebase_analytics: ^11.6.0
   firebase_crashlytics: ^4.3.10
+  flutter_dotenv: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -47,4 +48,6 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
   assets:
+    - .env
     - assets/images/
+    - assets/images/onboarding/

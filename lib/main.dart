@@ -12,11 +12,13 @@ import 'services/notification_service.dart';
 import 'services/ad_service.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'views/onboarding/onboarding_view.dart';
 import 'views/auth/auth_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Crashlytics Setup

@@ -4,6 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../home/home_view.dart';
 import 'quiz_view.dart';
 import '../../services/ad_service.dart';
+import '../../services/firestore_service.dart';
+import '../../controllers/auth_controller.dart';
 
 class ScoreView extends ConsumerStatefulWidget {
   final int score;
@@ -28,7 +30,30 @@ class _ScoreViewState extends ConsumerState<ScoreView> {
     // Show Interstitial Ad when results load
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(adServiceProvider).showInterstitialAd();
+      _saveScore();
     });
+  }
+
+  Future<void> _saveScore() async {
+    final user = ref.read(authServiceProvider).currentUser;
+    if (user != null) {
+      // Single player "win" condition could be > 50% correct, or just participation.
+      // For now let's say > 50% is a "win" for bonus stats.
+      final isWin = widget.correctAnswers >= (widget.totalQuestions / 2);
+
+      try {
+        await ref
+            .read(firestoreServiceProvider)
+            .updateUserStats(
+              uid: user.uid,
+              earnedScore: widget.score,
+              isWin: isWin,
+            );
+        debugPrint("Single player score saved successfully.");
+      } catch (e) {
+        debugPrint("Error saving single player score: $e");
+      }
+    }
   }
 
   @override

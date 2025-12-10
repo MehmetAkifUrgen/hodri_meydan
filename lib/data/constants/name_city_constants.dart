@@ -42,8 +42,6 @@ class NameCityConstants {
     'Sokakta Karşılaşılan Şey',
     'Cepten Çıkan Şey',
     'Salona Konulan Eşya',
-    'Anne Terliği', // Belki fazla spesifik ama eğlenceli :) Şaka.
-    'Annenin Söylediği Söz', // Bu harfle başlama zorluğu yaratabilir ama deneyelim.
     // Yiyecek & İçecek
     'Meyve / Sebze',
     'Tatlı',
